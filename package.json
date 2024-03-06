@@ -1,0 +1,11 @@
+{
+  "name": "cu-threads-backend",
+  "version": "1.0.0",
+  "description": "Backend for CU Threads, a community based platform for Chandigarh University exclusively.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dev Bhandari",
+  "license": "ISC"
+}
