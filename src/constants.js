@@ -1,1 +1,1 @@
-export const DB_NAME = "cuthreads"
+export const DB_NAME = "cuthreads";
