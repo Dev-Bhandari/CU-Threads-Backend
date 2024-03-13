@@ -12,7 +12,7 @@ const postSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-        content: {
+        textContent: {
             type: String,
             required: true,
             trim: true,
@@ -20,6 +20,17 @@ const postSchema = new mongoose.Schema(
         pinned: {
             type: Boolean,
             required: true,
+        },
+        photoUrl: {
+            type: String,
+        },
+        videoUrl: {
+            type: String,
+        },
+        mediaType: {
+            type: String,
+            enum: ["photo", "video", "text", "mixed"],
+            default: "text",
         },
         upvotes: {
             type: Number,
