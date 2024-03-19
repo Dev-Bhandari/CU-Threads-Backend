@@ -25,13 +25,13 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
         },
-        avatar: {
-            type: String,
-            required: true,
-        },
         password: {
             type: String,
             required: true,
+        },
+        avatar: {
+            type: String,
+            default: "https://www.svgrepo.com/show/452030/avatar-default.svg",
         },
         refreshToken: {
             type: String,
@@ -39,19 +39,20 @@ const userSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
-userSchema.pre("save", async (next) => {
+
+userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
         return next();
     }
-    this.password = bcrypt.hash(this.password, SALT_ROUNDS);
+    this.password = bcrypt.hashSync(this.password, Number(SALT_ROUNDS));
     next();
 });
 
-userSchema.methods.isPasswordCorrect = async (password) => {
+userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken = () => {
+userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -65,7 +66,7 @@ userSchema.methods.generateAccessToken = () => {
     );
 };
 
-userSchema.methods.generateRefreshToken = () => {
+userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -77,4 +78,6 @@ userSchema.methods.generateRefreshToken = () => {
     );
 };
 
-export const userModel = mongoose.model("User", userSchema);
+const userModel = mongoose.model("User", userSchema);
+
+export default userModel;
