@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
         avatar: {
             type: String,
             default: "https://www.svgrepo.com/show/452030/avatar-default.svg",

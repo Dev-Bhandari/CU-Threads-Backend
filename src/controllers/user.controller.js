@@ -1,12 +1,19 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import userModel from "../models/user.model.js";
+import verifyEmailModel from "../models/verifyEmail.model.js";
 import zod from "zod";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import fs from "fs";
 import jwt from "jsonwebtoken";
-import { REFRESH_TOKEN_SECRET } from "../config/server.config.js";
+import {
+    SERVER_ENDPOINT,
+    PORT,
+    EMAIL_TOKEN_SECRET,
+    REFRESH_TOKEN_SECRET,
+} from "../config/server.config.js";
+import transporter from "../config/nodemailer.config.js";
 
 const userZodObject = zod.object({
     username: zod.string(),
@@ -33,6 +40,44 @@ const generateAccessTokenAndRefreshToken = async function (userId) {
     }
 };
 
+const generateEmailToken = async function (userId) {
+    try {
+        const verifyEmailObject = await verifyEmailModel.findOne({ userId });
+        const emailToken = verifyEmailObject.generateEmailToken();
+        verifyEmailObject.emailToken = emailToken;
+        await verifyEmailObject.save({ validateBeforeSafe: false });
+        return emailToken;
+    } catch (error) {
+        throw new ApiError(
+            500,
+            "Something went wrong while genrating email token"
+        );
+    }
+};
+
+const generateEmail = async function (user) {
+    try {
+        await verifyEmailModel.deleteOne({ userId: user._id });
+        await verifyEmailModel.create({
+            userId: user._id,
+        });
+        const emailToken = await generateEmailToken(user._id);
+        console.log(`Email Token : ${emailToken}`);
+        const url = `${SERVER_ENDPOINT}:${PORT}/api/v1/users/verify?emailToken=${emailToken}`;
+
+        await transporter.sendMail({
+            to: user.email,
+            subject: "Confirm Email",
+            html: `Please click this link to confirm your email : <a href="${url}">${url}</a>`,
+        });
+    } catch (error) {
+        throw new ApiError(
+            500,
+            error?.message || "Something went wrong while generating email"
+        );
+    }
+};
+
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
 
@@ -45,15 +90,9 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!userZodResponse.success) {
         throw new ApiError(400, "write fields properly");
     }
-    let avatarLocalPath;
 
-    if (
-        req.files &&
-        Array.isArray(req.files.avatar) &&
-        req.files.avatar.length > 0
-    ) {
-        avatarLocalPath = req.files.avatar[0].path;
-    } else {
+    const avatarLocalPath = req.file?.path;
+    if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required");
     }
 
@@ -79,18 +118,69 @@ const registerUser = asyncHandler(async (req, res) => {
         password,
     });
 
-    const createdUser = await userModel
-        .findById(user._id)
+    const userId = user._id;
+
+    const currentUser = await userModel
+        .findById(userId)
         .select("-password -refreshToken");
 
-    if (!createdUser) {
+    if (!currentUser) {
         throw new ApiError(
             500,
             "Something went wrong while registering the user"
         );
     }
+    await generateEmail(currentUser);
     res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered Successfully")
+        new ApiResponse(200, currentUser, "User verification pending")
+    );
+});
+
+const generateNewEmailLink = asyncHandler(async (req, res) => {
+    const userId = req.body?.userId;
+    const currentUser = await userModel
+        .findById(userId)
+        .select("-password -refreshToken");
+    if (!currentUser) {
+        throw new ApiError(404, "User does not exist");
+    }
+    if (currentUser.isVerified) {
+        throw new ApiError(400, "User already verified");
+    }
+    await generateEmail(currentUser);
+    res.status(200).json(
+        new ApiResponse(200, {}, "Verification link send sucessfully")
+    );
+});
+
+const verifyEmail = asyncHandler(async (req, res) => {
+    const emailToken = req.query.emailToken;
+    if (!emailToken) {
+        throw new ApiError(401, "Unauthorised Request");
+    }
+    const decodedEmailToken = jwt.verify(emailToken, EMAIL_TOKEN_SECRET);
+    const verifyEmailObject = await verifyEmailModel.findById(
+        decodedEmailToken?._id
+    );
+    if (!verifyEmailObject) {
+        throw new ApiError(401, "Invalid or expired email token");
+    }
+
+    const user = await userModel
+        .findById(verifyEmailObject.userId)
+        .select("-password");
+
+    user.isVerified = true;
+    await user.save({ validateBeforeSave: false });
+
+    await verifyEmailModel.deleteOne({ userId: user._id });
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            verifyEmailObject.userId,
+            "User verified successfully"
+        )
     );
 });
 
@@ -104,7 +194,7 @@ const loginUser = asyncHandler(async (req, res) => {
     });
 
     if (!userZodResponse.success) {
-        throw new ApiError(400, "write fields properly");
+        throw new ApiError(400, "Write fields properly");
     }
 
     let user = await userModel
@@ -121,25 +211,29 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid username or password");
     }
 
-    const { accessToken, refreshToken } =
-        await generateAccessTokenAndRefreshToken(user._id);
-
-    const loggedInUser = await userModel
+    const currentUser = await userModel
         .findById(user._id)
         .select("-password -refreshToken");
+
+    if (!currentUser.isVerified) {
+        return res
+            .status(400)
+            .json(new ApiResponse(400, currentUser, "User not verified"));
+    }
 
     const options = {
         httpOnly: true,
         secure: true,
     };
 
+    const { accessToken, refreshToken } =
+        await generateAccessTokenAndRefreshToken(user._id);
+
     return res
         .status(200)
         .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
-        .json(
-            new ApiResponse(200, loggedInUser, "User logged in successfully")
-        );
+        .json(new ApiResponse(200, currentUser, "User logged in successfully"));
 });
 
 const logoutUser = async (req, res) => {
@@ -163,7 +257,7 @@ const logoutUser = async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken =
-        req.cookie.refreshToken || req.headers.refreshToken;
+        req.cookies.refreshToken || req.headers.refreshToken;
     if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthorised request");
     }
@@ -209,4 +303,68 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        throw new ApiError(401, "All fields are required");
+    }
+
+    if (newPassword !== confirmPassword) {
+        throw new ApiError(
+            401,
+            "New password and confirm password is not same"
+        );
+    }
+
+    if (oldPassword === newPassword) {
+        throw new ApiError(401, "New password and old password cannot be same");
+    }
+
+    const user = await userModel.findById(req.user?._id);
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "Invalid old password");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, req.user, "Current user fetched successfully")
+        );
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path;
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required");
+    }
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+    if (!avatar.url) {
+        throw new ApiError(400, "Error while uploading on avatar");
+    }
+    await userModel.findByIdAndUpdate(req.user?._id, {
+        $set: { avatar: avatar.url },
+    });
+});
+
+export {
+    registerUser,
+    generateNewEmailLink,
+    verifyEmail,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateUserAvatar,
+};
