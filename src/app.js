@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { CORS_ORIGIN } from "./config/server.config.js";
+import ApiResponse from "./utils/ApiResponse.js";
 
 const app = express();
 
@@ -18,5 +19,9 @@ app.use(cookieParser());
 import userRouter from "./routes/user.routes.js";
 
 app.use("/api/v1/users", userRouter);
+
+app.get("/", (req, res) => {
+    return res.status(200).json(new ApiResponse(200, {}, "Api working"));
+});
 
 export { app };
