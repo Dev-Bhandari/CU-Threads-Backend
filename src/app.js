@@ -21,7 +21,9 @@ import userRouter from "./routes/user.routes.js";
 app.use("/api/v1/users", userRouter);
 
 app.get("/", (req, res) => {
-    return res.status(200).json(new ApiResponse(200, {}, "Api working"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { message: "Api working" }, "Api working"));
 });
 
 export { app };
