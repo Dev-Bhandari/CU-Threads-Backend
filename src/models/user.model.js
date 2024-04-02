@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
         },
         avatar: {
             type: String,
-            default: "https://www.svgrepo.com/show/452030/avatar-default.svg",
+            default: "https://res.cloudinary.com/demetdlv9/image/upload/v1711391898/avatar-default.svg",
         },
         refreshToken: {
             type: String,

@@ -40,40 +40,33 @@ const generateAccessTokenAndRefreshToken = async function (userId) {
     }
 };
 
-const generateEmailToken = async function (userId) {
-    try {
-        const verifyEmailObject = await verifyEmailModel.findOne({ userId });
-        const emailToken = verifyEmailObject.generateEmailToken();
-        verifyEmailObject.emailToken = emailToken;
-        await verifyEmailObject.save({ validateBeforeSafe: false });
-        return emailToken;
-    } catch (error) {
-        throw new ApiError(
-            500,
-            "Something went wrong while genrating email token"
-        );
-    }
-};
-
 const generateEmail = async function (user) {
     try {
         await verifyEmailModel.deleteOne({ userId: user._id });
         await verifyEmailModel.create({
             userId: user._id,
         });
-        const emailToken = await generateEmailToken(user._id);
+
+        const verifyEmailObject = await verifyEmailModel.findOne({
+            userId: user._id,
+        });
+        const emailToken = verifyEmailObject.generateEmailToken();
+        verifyEmailObject.emailToken = emailToken;
+        await verifyEmailObject.save({ validateBeforeSafe: false });
+
         console.log(`Email Token : ${emailToken}`);
         const url = `${SERVER_ENDPOINT}:${PORT}/api/v1/users/verify?emailToken=${emailToken}`;
 
         await transporter.sendMail({
+            from: "CU Threads <cuthreadsofficial@gmail.com>",
             to: user.email,
             subject: "Confirm Email",
-            html: `Please click this link to confirm your email : <a href="${url}">${url}</a>`,
+            html: `Please click this link to confirm your email for registration on CU Threads: <a href="${url}">${url}</a>`,
         });
     } catch (error) {
         throw new ApiError(
             500,
-            error?.message || "Something went wrong while generating email"
+            error?.message || "Something went wrong while generating email."
         );
     }
 };
@@ -88,13 +81,10 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     if (!userZodResponse.success) {
-        throw new ApiError(400, "write fields properly");
+        throw new ApiError(400, "write fields properly.");
     }
 
     const avatarLocalPath = req.file?.path;
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is required");
-    }
 
     const existedUser = await userModel.findOne({
         $or: [{ username }, { email }],
@@ -102,15 +92,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
     if (existedUser) {
         fs.unlinkSync(avatarLocalPath);
-        throw new ApiError(409, "User with email or username already exist");
+        throw new ApiError(409, "User with email or username already exist.");
     }
-
-    const avatarFile = await uploadOnCloudinary(avatarLocalPath);
-
-    if (!avatarFile) {
-        throw new ApiError(400, "Avatar file is required");
+    let avatarFile;
+    if (avatarLocalPath) {
+        avatarFile = await uploadOnCloudinary(avatarLocalPath);
     }
-
     const user = await userModel.create({
         username,
         avatar: avatarFile?.url,
@@ -127,12 +114,12 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!currentUser) {
         throw new ApiError(
             500,
-            "Something went wrong while registering the user"
+            "Something went wrong while registering the user."
         );
     }
     await generateEmail(currentUser);
     res.status(201).json(
-        new ApiResponse(200, currentUser, "User verification pending")
+        new ApiResponse(200, currentUser, "User verification pending.")
     );
 });
 
@@ -142,28 +129,28 @@ const generateNewEmailLink = asyncHandler(async (req, res) => {
         .findById(userId)
         .select("-password -refreshToken");
     if (!currentUser) {
-        throw new ApiError(404, "User does not exist");
+        throw new ApiError(404, "User does not exist.");
     }
     if (currentUser.isVerified) {
-        throw new ApiError(400, "User already verified");
+        throw new ApiError(400, "User already verified.");
     }
     await generateEmail(currentUser);
     res.status(200).json(
-        new ApiResponse(200, {}, "Verification link send sucessfully")
+        new ApiResponse(200, {}, "Verification link send sucessfully.")
     );
 });
 
 const verifyEmail = asyncHandler(async (req, res) => {
     const emailToken = req.query.emailToken;
     if (!emailToken) {
-        throw new ApiError(401, "Unauthorised Request");
+        throw new ApiError(401, "Unauthorised Request.");
     }
     const decodedEmailToken = jwt.verify(emailToken, EMAIL_TOKEN_SECRET);
     const verifyEmailObject = await verifyEmailModel.findById(
         decodedEmailToken?._id
     );
     if (!verifyEmailObject) {
-        throw new ApiError(401, "Invalid or expired email token");
+        throw new ApiError(401, "Invalid or expired email token.");
     }
 
     const user = await userModel
@@ -179,7 +166,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             verifyEmailObject.userId,
-            "User verified successfully"
+            "User verified successfully."
         )
     );
 });
@@ -194,7 +181,7 @@ const loginUser = asyncHandler(async (req, res) => {
     });
 
     if (!userZodResponse.success) {
-        throw new ApiError(400, "Write fields properly");
+        throw new ApiError(400, "Write fields properly.");
     }
 
     let user = await userModel
@@ -202,13 +189,13 @@ const loginUser = asyncHandler(async (req, res) => {
         .select("-refreshToken");
 
     if (!user) {
-        throw new ApiError(404, "User does not exist");
+        throw new ApiError(404, "User does not exist.");
     }
 
     const isPasswordCorrect = await user.isPasswordCorrect(password);
 
     if (!isPasswordCorrect) {
-        throw new ApiError(401, "Invalid username or password");
+        throw new ApiError(401, "Invalid username or password.");
     }
 
     const currentUser = await userModel

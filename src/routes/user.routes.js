@@ -23,7 +23,6 @@ router.route("/login").post(loginUser);
 
 router.route("/verify").post(verifyEmail);
 
-
 router.route("/logout").post(verifyJWT, logoutUser);
 
 router.route("/refresh-token").post(refreshAccessToken);
