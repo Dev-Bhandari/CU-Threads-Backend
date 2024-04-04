@@ -14,6 +14,7 @@ import {
     REFRESH_TOKEN_SECRET,
 } from "../config/server.config.js";
 import transporter from "../config/nodemailer.config.js";
+import { COOKIE_OPTIONS } from "../constants.js";
 
 const userZodObject = zod.object({
     username: zod.string(),
@@ -208,18 +209,13 @@ const loginUser = asyncHandler(async (req, res) => {
             .json(new ApiResponse(400, currentUser, "User not verified"));
     }
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-    };
-
     const { accessToken, refreshToken } =
         await generateAccessTokenAndRefreshToken(user._id);
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, COOKIE_OPTIONS)
+        .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
         .json(new ApiResponse(200, currentUser, "User logged in successfully"));
 });
 
@@ -230,15 +226,10 @@ const logoutUser = async (req, res) => {
         },
     });
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-    };
-
     return res
         .status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
+        .clearCookie("accessToken", COOKIE_OPTIONS)
+        .clearCookie("refreshToken", COOKIE_OPTIONS)
         .json(new ApiResponse(200, {}, "User logged out"));
 };
 
@@ -264,16 +255,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh Token is expired");
         }
 
-        const options = {
-            httpOnly: true,
-            secure: true,
-        };
         const { accessToken, refreshToken } =
             await generateAccessTokenAndRefreshToken(user._id);
         return res
             .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", refreshToken, options)
+            .cookie("accessToken", accessToken, COOKIE_OPTIONS)
+            .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
             .json(
                 new ApiResponse(
                     200,
