@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 
 dotenv.config();
-
+const FRONTEND_ENDPOINT = process.env.FRONTEND_ENDPOINT;
 const SERVER_ENDPOINT = process.env.SERVER_ENDPOINT;
 const PORT = process.env.PORT;
 const MONGODB_URL = process.env.MONGODB_URL;
@@ -20,6 +20,7 @@ const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
 export {
+    FRONTEND_ENDPOINT,
     SERVER_ENDPOINT,
     PORT,
     MONGODB_URL,

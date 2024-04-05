@@ -16,7 +16,12 @@ import {
 import transporter from "../config/nodemailer.config.js";
 import { COOKIE_OPTIONS } from "../constants.js";
 
-const userZodObject = zod.object({
+const userLoginZodObject = zod.object({
+    email: zod.string().email(),
+    password: zod.string(),
+});
+
+const userRegisterZodObject = zod.object({
     username: zod.string(),
     email: zod.string().email(),
     password: zod.string(),
@@ -75,13 +80,13 @@ const generateEmail = async function (user) {
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
 
-    const userZodResponse = userZodObject.safeParse({
+    const userRegisterZodResponse = userRegisterZodObject.safeParse({
         username,
         email,
         password,
     });
 
-    if (!userZodResponse.success) {
+    if (!userRegisterZodResponse.success) {
         throw new ApiError(400, "write fields properly.");
     }
 
@@ -173,21 +178,18 @@ const verifyEmail = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
-    const userZodResponse = userZodObject.safeParse({
-        username,
+    const userLoginZodResponse = userLoginZodObject.safeParse({
         email,
         password,
     });
 
-    if (!userZodResponse.success) {
+    if (!userLoginZodResponse.success) {
         throw new ApiError(400, "Write fields properly.");
     }
 
-    let user = await userModel
-        .findOne({ $or: [{ username }, { email }] })
-        .select("-refreshToken");
+    let user = await userModel.findOne({ email }).select("-refreshToken");
 
     if (!user) {
         throw new ApiError(404, "User does not exist.");
@@ -196,7 +198,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const isPasswordCorrect = await user.isPasswordCorrect(password);
 
     if (!isPasswordCorrect) {
-        throw new ApiError(401, "Invalid username or password.");
+        throw new ApiError(401, "Invalid email or password.");
     }
 
     const currentUser = await userModel
@@ -228,8 +230,14 @@ const logoutUser = async (req, res) => {
 
     return res
         .status(200)
-        .clearCookie("accessToken")
-        .clearCookie("refreshToken")
+        .clearCookie("accessToken", {
+            secure: true,
+            sameSite: "none",
+        })
+        .clearCookie("refreshToken", {
+            secure: true,
+            sameSite: "none",
+        })
         .json(new ApiResponse(200, {}, "User logged out"));
 };
 
