@@ -2,10 +2,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import userModel from "../models/user.model.js";
 import verifyEmailModel from "../models/verifyEmail.model.js";
-import zod from "zod";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import fs from "fs";
 import jwt from "jsonwebtoken";
 import {
     SERVER_ENDPOINT,
@@ -15,17 +13,10 @@ import {
 } from "../config/server.config.js";
 import transporter from "../config/nodemailer.config.js";
 import { COOKIE_OPTIONS } from "../constants.js";
-
-const userLoginZodObject = zod.object({
-    email: zod.string().email(),
-    password: zod.string(),
-});
-
-const userRegisterZodObject = zod.object({
-    username: zod.string(),
-    email: zod.string().email(),
-    password: zod.string(),
-});
+import {
+    validateUserRegister,
+    validateUserLogin,
+} from "../utils/validation/user.validation.js";
 
 const generateAccessTokenAndRefreshToken = async function (userId) {
     try {
@@ -79,34 +70,21 @@ const generateEmail = async function (user) {
 
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
+    const error = validateUserRegister(username, email, password);
 
-    const userRegisterZodResponse = userRegisterZodObject.safeParse({
-        username,
-        email,
-        password,
-    });
-
-    if (!userRegisterZodResponse.success) {
-        throw new ApiError(400, "write fields properly.");
+    if (error) {
+        throw new ApiError(400, error);
     }
-
-    const avatarLocalPath = req.file?.path;
-
     const existedUser = await userModel.findOne({
         $or: [{ username }, { email }],
     });
 
     if (existedUser) {
-        fs.unlinkSync(avatarLocalPath);
         throw new ApiError(409, "User with email or username already exist.");
     }
-    let avatarFile;
-    if (avatarLocalPath) {
-        avatarFile = await uploadOnCloudinary(avatarLocalPath);
-    }
+
     const user = await userModel.create({
         username,
-        avatar: avatarFile?.url,
         email,
         password,
     });
@@ -180,13 +158,10 @@ const verifyEmail = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    const userLoginZodResponse = userLoginZodObject.safeParse({
-        email,
-        password,
-    });
+    const error = validateUserLogin(email, password);
 
-    if (!userLoginZodResponse.success) {
-        throw new ApiError(400, "Write fields properly.");
+    if (error) {
+        throw new ApiError(400, error.toString());
     }
 
     let user = await userModel.findOne({ email }).select("-refreshToken");
