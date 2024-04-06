@@ -7,3 +7,6 @@ export const COOKIE_OPTIONS = {
     sameSite: "none",
     path: "/",
 };
+
+export const DEFAULT_AVATAR =
+    "https://res.cloudinary.com/demetdlv9/image/upload/v1711391898/avatar-default.svg";

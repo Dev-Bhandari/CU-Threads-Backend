@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { DEFAULT_AVATAR } from "../constants.js";
 
 const threadSchema = new mongoose.Schema(
     {
@@ -15,16 +16,14 @@ const threadSchema = new mongoose.Schema(
         },
         description: {
             type: String,
-            required: true,
             trim: true,
         },
         avatar: {
             type: String,
-            required: true,
+            default: DEFAULT_AVATAR,
         },
         banner: {
             type: String,
-            required: true,
         },
         tag: [
             {

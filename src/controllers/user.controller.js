@@ -48,8 +48,6 @@ const generateEmail = async function (user) {
             userId: user._id,
         });
         const emailToken = verifyEmailObject.generateEmailToken();
-        verifyEmailObject.emailToken = emailToken;
-        await verifyEmailObject.save({ validateBeforeSafe: false });
 
         console.log(`Email Token : ${emailToken}`);
         const url = `${SERVER_ENDPOINT}:${PORT}/api/v1/users/verify?emailToken=${emailToken}`;
@@ -103,7 +101,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
     await generateEmail(currentUser);
     res.status(201).json(
-        new ApiResponse(200, currentUser, "User verification pending.")
+        new ApiResponse(201, currentUser, "User verification pending.")
     );
 });
 
@@ -182,22 +180,23 @@ const loginUser = asyncHandler(async (req, res) => {
 
     if (!currentUser.isVerified) {
         return res
-            .status(400)
-            .json(new ApiResponse(400, currentUser, "User not verified"));
+            .status(202)
+            .json(new ApiResponse(202, currentUser, "User not verified"));
     }
 
     const { accessToken, refreshToken } =
         await generateAccessTokenAndRefreshToken(user._id);
 
     return res
-        .status(200)
+        .status(201)
         .cookie("accessToken", accessToken, COOKIE_OPTIONS)
         .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
-        .json(new ApiResponse(200, currentUser, "User logged in successfully"));
+        .json(new ApiResponse(201, currentUser, "User logged in successfully"));
 });
 
 const logoutUser = async (req, res) => {
-    await userModel.findByIdAndUpdate(req.user._id, {
+    const user = req.body;
+    await userModel.findByIdAndUpdate(user._id, {
         $unset: {
             refreshToken: 1,
         },
@@ -261,7 +260,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-    const { oldPassword, newPassword, confirmPassword } = req.body;
+    const { user, oldPassword, newPassword, confirmPassword } = req.body;
 
     if (!oldPassword || !newPassword || !confirmPassword) {
         throw new ApiError(401, "All fields are required");
@@ -278,7 +277,6 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         throw new ApiError(401, "New password and old password cannot be same");
     }
 
-    const user = await userModel.findById(req.user?._id);
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
     if (!isPasswordCorrect) {
         throw new ApiError(401, "Invalid old password");
@@ -292,10 +290,19 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+    const { user } = req.body;
+    const userObject = user.toObject();
+    delete userObject.password;
+    delete userObject.refreshToken;
+
     return res
         .status(200)
         .json(
-            new ApiResponse(200, req.user, "Current user fetched successfully")
+            new ApiResponse(
+                200,
+                userObject,
+                "Current user fetched successfully"
+            )
         );
 });
 
@@ -307,11 +314,17 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
     if (!avatar.url) {
-        throw new ApiError(400, "Error while uploading on avatar");
+        throw new ApiError(400, "Error while uploading avatar");
     }
-    await userModel.findByIdAndUpdate(req.user?._id, {
-        $set: { avatar: avatar.url },
-    });
+    const user = await userModel
+        .findByIdAndUpdate(req.body.user._id, {
+            $set: { avatar: avatar.url },
+        })
+        .select("-password -refershToken");
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "Avatar uploaded successfully"));
 });
 
 export {

@@ -8,9 +8,6 @@ const verifyEmailSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    emailToken: {
-        type: String,
-    },
     createdAt: {
         type: Date,
         default: Date.now,
