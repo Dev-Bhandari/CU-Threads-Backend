@@ -50,7 +50,7 @@ const generateEmail = async function (user) {
         const emailToken = verifyEmailObject.generateEmailToken();
 
         console.log(`Email Token : ${emailToken}`);
-        const url = `${SERVER_ENDPOINT}:${PORT}/api/v1/users/verify?emailToken=${emailToken}`;
+        const url = `$https://${SERVER_ENDPOINT}:${PORT}/api/v1/users/verify?emailToken=${emailToken}`;
 
         await transporter.sendMail({
             from: "CU Threads <cuthreadsofficial@gmail.com>",

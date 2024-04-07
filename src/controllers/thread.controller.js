@@ -54,7 +54,7 @@ const editDescription = asyncHandler(async (req, res) => {
         );
 });
 
-const editAvatar = asyncHandler(async (req, res) => {
+const updateThreadAvatar = asyncHandler(async (req, res) => {
     const { thread } = req.body;
     const avatarLocalPath = req.file?.path;
     if (!avatarLocalPath) {
@@ -66,16 +66,20 @@ const editAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error while uploading on avatar");
     }
     const newThread = await threadModel
-        .findByIdAndUpdate(thread._id, {
-            $set: { avatar: avatar.url },
-        })
+        .findByIdAndUpdate(
+            thread._id,
+            {
+                $set: { avatar: avatar.url },
+            },
+            { new: true }
+        )
         .select("-createdBy");
     return res
         .status(200)
         .json(new ApiResponse(200, newThread, "Avatar uploaded successfully"));
 });
 
-const editBanner = asyncHandler(async (req, res) => {
+const updateThreadBanner = asyncHandler(async (req, res) => {
     const { thread } = req.body;
     const bannerLocalPath = req.file?.path;
     if (!bannerLocalPath) {
@@ -87,9 +91,13 @@ const editBanner = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error while uploading banner");
     }
     const newThread = await threadModel
-        .findByIdAndUpdate(thread._id, {
-            $set: { banner: banner.url },
-        })
+        .findByIdAndUpdate(
+            thread._id,
+            {
+                $set: { banner: banner.url },
+            },
+            { new: true }
+        )
         .select("-createdBy");
     return res
         .status(200)
@@ -139,8 +147,8 @@ const getAllThreads = asyncHandler(async (req, res) => {
 export {
     createThread,
     editDescription,
-    editAvatar,
-    editBanner,
+    updateThreadAvatar,
+    updateThreadBanner,
     getOneThread,
     getThreads,
     getAllThreads,

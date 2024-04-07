@@ -2,8 +2,8 @@ import { Router } from "express";
 import {
     createThread,
     editDescription,
-    editAvatar,
-    editBanner,
+    updateThreadAvatar,
+    updateThreadBanner,
     getAllThreads,
     getOneThread,
     getThreads,
@@ -19,12 +19,22 @@ router
     .post(verifyJWT, verifyCreater, editDescription);
 
 router
-    .route("/edit-avatar")
-    .post(upload.single("avatar"), verifyJWT, verifyCreater, editAvatar);
+    .route("/change-avatar")
+    .patch(
+        upload.single("avatar"),
+        verifyJWT,
+        verifyCreater,
+        updateThreadAvatar
+    );
 
 router
-    .route("/edit-banner")
-    .post(upload.single("banner"), verifyJWT, verifyCreater, editBanner);
+    .route("/change-banner")
+    .patch(
+        upload.single("banner"),
+        verifyJWT,
+        verifyCreater,
+        updateThreadBanner
+    );
 
 router.route("/get-onethread").get(getOneThread);
 
