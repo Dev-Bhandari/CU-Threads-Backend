@@ -6,6 +6,7 @@ import {
     validateCreateThread,
     validateEditDescription,
 } from "../utils/validation/thread.validation.js";
+import uploadOnCloudinary from "../utils/cloudinary.js";
 
 const createThread = asyncHandler(async (req, res) => {
     const { user, name } = req.body;
@@ -95,4 +96,52 @@ const editBanner = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, newThread, "Banner uploaded successfully"));
 });
 
-export { createThread, editDescription, editAvatar, editBanner };
+const getOneThread = asyncHandler(async (req, res) => {
+    const { threadId } = req.body;
+    const thread = await threadModel
+        .findById(threadId)
+        .populate({ path: "createdBy", select: "-password -refreshToken" });
+
+    if (!thread) {
+        throw new ApiError(404, "Thread not found");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, thread, "Thread fetched successfully"));
+});
+
+const getThreads = asyncHandler(async (req, res) => {
+    const { threadIds } = req.body;
+
+    const threads = await threadModel
+        .find({ _id: { $in: threadIds } })
+        .populate({ path: "createdBy", select: "-password -refreshToken" });
+
+    if (threads.length == 0) {
+        throw new ApiError(404, "Threads not found");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, threads, "Threads fetched successfully"));
+});
+
+const getAllThreads = asyncHandler(async (req, res) => {
+    const threads = await threadModel
+        .find()
+        .populate({ path: "createdBy", select: "-password -refreshToken" });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, threads, "All threads fetched successfully")
+        );
+});
+export {
+    createThread,
+    editDescription,
+    editAvatar,
+    editBanner,
+    getOneThread,
+    getThreads,
+    getAllThreads,
+};
