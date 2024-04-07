@@ -179,9 +179,12 @@ const loginUser = asyncHandler(async (req, res) => {
         .select("-password -refreshToken");
 
     if (!currentUser.isVerified) {
+        await generateEmail(currentUser);
         return res
             .status(202)
-            .json(new ApiResponse(202, currentUser, "User not verified"));
+            .json(
+                new ApiResponse(202, currentUser, "User verification pending")
+            );
     }
 
     const { accessToken, refreshToken } =
@@ -316,12 +319,16 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     if (!avatar.url) {
         throw new ApiError(400, "Error while uploading avatar");
     }
-    const user = await userModel
-        .findByIdAndUpdate(req.body.user._id, {
-            $set: { avatar: avatar.url },
-        })
-        .select("-password -refershToken");
 
+    const user = await userModel
+        .findByIdAndUpdate(
+            req.body.user._id,
+            {
+                $set: { avatar: avatar.url },
+            },
+            { new: true }
+        )
+        .select("-password -refreshToken");
     return res
         .status(200)
         .json(new ApiResponse(200, user, "Avatar uploaded successfully"));

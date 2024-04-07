@@ -9,4 +9,7 @@ export const COOKIE_OPTIONS = {
 };
 
 export const DEFAULT_AVATAR =
-    "https://res.cloudinary.com/demetdlv9/image/upload/v1711391898/avatar-default.svg";
+    "https://res.cloudinary.com/demetdlv9/image/upload/v1712492059/default-avatar.png";
+
+export const DEFAULT_BANNER =
+    "https://res.cloudinary.com/demetdlv9/image/upload/v1712492058/default-banner.png";
