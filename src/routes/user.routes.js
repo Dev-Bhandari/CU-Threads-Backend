@@ -17,11 +17,11 @@ const router = Router();
 
 router.route("/register").post(registerUser);
 
-router.route("/verify-new-link").post(generateNewEmailLink);
+router.route("/get-new-link").post(generateNewEmailLink);
 
 router.route("/login").post(loginUser);
 
-router.route("/verify").post(verifyEmail);
+router.route("/verify-email").post(verifyEmail);
 
 router.route("/logout").post(verifyJWT, logoutUser);
 

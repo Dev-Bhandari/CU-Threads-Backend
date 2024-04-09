@@ -40,3 +40,10 @@ export const verifyCreater = asyncHandler(async (req, _, next) => {
         throw new ApiError(401, error?.message || "Unauthorised Request");
     }
 });
+
+export const verifyMember = asyncHandler(async (req, _, next) => {
+    try {
+        const { user, threadId } = req.body;
+        
+    } catch (error) {}
+});

@@ -17,7 +17,6 @@ app.use(cookieParser());
 
 import userRouter from "./routes/user.routes.js";
 import threadRouter from "./routes/thread.routes.js";
-import upload from "./middlewares/multer.middleware.js";
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/threads", threadRouter);

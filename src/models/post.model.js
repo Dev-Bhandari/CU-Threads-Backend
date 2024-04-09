@@ -14,23 +14,20 @@ const postSchema = new mongoose.Schema(
         },
         textContent: {
             type: String,
-            required: true,
             trim: true,
         },
         pinned: {
             type: Boolean,
             required: true,
         },
-        photoUrl: {
-            type: String,
-        },
-        videoUrl: {
-            type: String,
-        },
+        mediaUrl: [
+            {
+                type: String,
+            },
+        ],
         mediaType: {
             type: String,
-            enum: ["photo", "video", "text", "mixed"],
-            default: "text",
+            enum: ["photo", "video"],
         },
         upvotes: {
             type: Number,
@@ -46,10 +43,9 @@ const postSchema = new mongoose.Schema(
                 ref: "Comment",
             },
         ],
-        tag: [
+        tags: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Tag",
+                type: String,
             },
         ],
     },

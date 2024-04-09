@@ -26,12 +26,7 @@ const threadSchema = new mongoose.Schema(
             type: String,
             default: DEFAULT_BANNER,
         },
-        tag: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "tag",
-            },
-        ],
+        tags: [{ type: String }],
     },
     { timestamps: true }
 );

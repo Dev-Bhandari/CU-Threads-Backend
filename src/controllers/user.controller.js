@@ -6,12 +6,10 @@ import uploadOnCloudinary from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import {
-    SERVER_ENDPOINT,
-    PORT,
     EMAIL_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET,
 } from "../config/server.config.js";
-import transporter from "../config/nodemailer.config.js";
+import { mailer } from "../config/nodemailer.config.js";
 import { COOKIE_OPTIONS } from "../constants.js";
 import {
     validateUserRegister,
@@ -50,14 +48,7 @@ const generateEmail = async function (user) {
         const emailToken = verifyEmailObject.generateEmailToken();
 
         console.log(`Email Token : ${emailToken}`);
-        const url = `$https://${SERVER_ENDPOINT}:${PORT}/api/v1/users/verify?emailToken=${emailToken}`;
-
-        await transporter.sendMail({
-            from: "CU Threads <cuthreadsofficial@gmail.com>",
-            to: user.email,
-            subject: "Confirm Email",
-            html: `Please click this link to confirm your email for registration on CU Threads: <a href="${url}">${url}</a>`,
-        });
+        mailer(user, emailToken);
     } catch (error) {
         throw new ApiError(
             500,
@@ -73,12 +64,16 @@ const registerUser = asyncHandler(async (req, res) => {
     if (error) {
         throw new ApiError(400, error);
     }
-    const existedUser = await userModel.findOne({
-        $or: [{ username }, { email }],
-    });
+    let existedUser = await userModel.findOne({ email });
 
     if (existedUser) {
-        throw new ApiError(409, "User with email or username already exist.");
+        throw new ApiError(409, "User with email already exist.");
+    }
+
+    existedUser = await userModel.findOne({ username });
+
+    if (existedUser) {
+        throw new ApiError(409, "User with username already exist.");
     }
 
     const user = await userModel.create({
@@ -145,11 +140,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
     await verifyEmailModel.deleteOne({ userId: user._id });
 
     res.status(200).json(
-        new ApiResponse(
-            200,
-            verifyEmailObject.userId,
-            "User verified successfully."
-        )
+        new ApiResponse(200, user, "User verified successfully.")
     );
 });
 
@@ -198,7 +189,7 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = async (req, res) => {
-    const user = req.body;
+    const {user} = req.body;
     await userModel.findByIdAndUpdate(user._id, {
         $unset: {
             refreshToken: 1,
