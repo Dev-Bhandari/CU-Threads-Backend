@@ -48,7 +48,7 @@ const generateEmail = async function (user) {
         const emailToken = verifyEmailObject.generateEmailToken();
 
         console.log(`Email Token : ${emailToken}`);
-        mailer(user, emailToken);
+        await mailer(user, emailToken);
     } catch (error) {
         throw new ApiError(
             500,
@@ -189,7 +189,7 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = async (req, res) => {
-    const {user} = req.body;
+    const { user } = req.body;
     await userModel.findByIdAndUpdate(user._id, {
         $unset: {
             refreshToken: 1,
