@@ -17,6 +17,7 @@ const transporter = nodemailer.createTransport({
 
 const mailer = async (user, emailToken) => {
     const url = `https://${FRONTEND_ENDPOINT}/verify-email?emailToken=${emailToken}`;
+    // const url = `http://localhost:5173/verify-email?emailToken=${emailToken}`;
 
     await transporter.sendMail({
         from: "CU Threads <cuthreadsofficial@gmail.com>",
@@ -26,19 +27,14 @@ const mailer = async (user, emailToken) => {
         <!DOCTYPE html>
         <html lang="en">
             <head> 
-                <style type="text/css">
-                    .im {
-                        color: #000000 !important;
-                    }
-                </style>
                 <meta charset="UTF-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <title>Email Verification</title>
             </head>
             <body style="font-family: Arial, sans-serif; padding: 20px">
                 <div style="max-width: 600px; margin: 0 auto">
-                    <p style="font-size: 16px">Hi ${user.username}:</p>
-                    <p style="font-size: 16px">
+                    <p style="font-size: 16px; color: #000;">Hi ${user.username}:</p>
+                    <p style="font-size: 16px; color: #000;">
                         You have created an account with the ${user.email}. <br />Please
                         click on the button given below to confirm your account.
                     </p>
@@ -56,13 +52,12 @@ const mailer = async (user, emailToken) => {
                         "
                         >Verify Email</a
                     >
-                    <p style="font-size: 16px">
+                    <p style="font-size: 16px; color: #000;">
                         lf clicking the button doesn't seem to work, you can copy and
                         paste the following link into your browser.
-                        <br />
-                        <a href="${url}">${url}</a>
                     </p>
-                    <p style="font-size: 16px; margin-top: 50px">
+                    <a href="${url}">${url}</a>
+                    <p style="font-size: 16px; margin-top: 50px; color: #000;">
                         Thanks,
                         <br />
                         CU Threads
