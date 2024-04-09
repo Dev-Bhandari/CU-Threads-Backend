@@ -25,7 +25,12 @@ const mailer = async (user, emailToken) => {
         html: `
         <!DOCTYPE html>
         <html lang="en">
-            <head>
+            <head> 
+                <style type="text/css">
+                    .im {
+                        color: #000000 !important;
+                    }
+                </style>
                 <meta charset="UTF-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <title>Email Verification</title>
