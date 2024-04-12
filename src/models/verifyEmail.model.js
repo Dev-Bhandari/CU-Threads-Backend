@@ -21,6 +21,7 @@ verifyEmailSchema.methods.generateEmailToken = function () {
     return jwt.sign({ _id: this._id }, EMAIL_TOKEN_SECRET);
 };
 
-const verifyEmailModel = new mongoose.model("VerifyEmail", verifyEmailSchema);
-
-export default verifyEmailModel;
+export const verifyEmailModel = new mongoose.model(
+    "VerifyEmail",
+    verifyEmailSchema
+);

@@ -1,28 +1,33 @@
 import { Router } from "express";
 import {
     createThread,
-    editDescription,
+    updateDescription,
     updateThreadAvatar,
     updateThreadBanner,
     getAllThreads,
     getOneThread,
     getThreads,
 } from "../controllers/thread.controller.js";
-import { verifyJWT, verifyCreater } from "../middlewares/auth.middleware.js";
+import {
+    verifyJWT,
+    verifyCreater,
+    verifyThread,
+} from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";
 const router = Router();
 
 router.route("/create-thread").post(verifyJWT, createThread);
 
 router
-    .route("/edit-description")
-    .post(verifyJWT, verifyCreater, editDescription);
+    .route("/change-description")
+    .post(verifyJWT, verifyThread, verifyCreater, updateDescription);
 
 router
     .route("/change-avatar")
     .patch(
         upload.single("avatar"),
         verifyJWT,
+        verifyThread,
         verifyCreater,
         updateThreadAvatar
     );
@@ -32,6 +37,7 @@ router
     .patch(
         upload.single("banner"),
         verifyJWT,
+        verifyThread,
         verifyCreater,
         updateThreadBanner
     );

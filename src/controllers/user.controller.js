@@ -1,7 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
-import userModel from "../models/user.model.js";
-import verifyEmailModel from "../models/verifyEmail.model.js";
+import {userModel,verifyEmailModel} from "../models/index.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -307,7 +306,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     }
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-    if (!avatar.url) {
+    if (!avatar.secure_url) {
         throw new ApiError(400, "Error while uploading avatar");
     }
 
@@ -315,7 +314,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         .findByIdAndUpdate(
             req.body.user._id,
             {
-                $set: { avatar: avatar.url },
+                $set: { avatar: avatar.secure_url },
             },
             { new: true }
         )

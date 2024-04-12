@@ -17,9 +17,11 @@ app.use(cookieParser());
 
 import userRouter from "./routes/user.routes.js";
 import threadRouter from "./routes/thread.routes.js";
+import postRouter from "./routes/post.routes.js";
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/threads", threadRouter);
+app.use("/api/v1/posts", postRouter);
 
 app.get("/", (req, res) => {
     return res

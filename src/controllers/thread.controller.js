@@ -1,12 +1,13 @@
-import { threadModel } from "../models/thread.model.js";
+import { threadModel } from "../models/index.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import {
     validateCreateThread,
-    validateEditDescription,
+    validateUpdateDescription,
 } from "../utils/validation/thread.validation.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
+import fs from "fs";
 
 const createThread = asyncHandler(async (req, res) => {
     const { user, name } = req.body;
@@ -34,9 +35,9 @@ const createThread = asyncHandler(async (req, res) => {
         );
 });
 
-const editDescription = asyncHandler(async (req, res) => {
+const updateDescription = asyncHandler(async (req, res) => {
     const { thread, description } = req.body;
-    const error = validateEditDescription(description);
+    const error = validateUpdateDescription(description);
     if (error) {
         throw new ApiError(400, error.toString());
     }
@@ -62,14 +63,15 @@ const updateThreadAvatar = asyncHandler(async (req, res) => {
     }
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-    if (!avatar.url) {
-        throw new ApiError(400, "Error while uploading on avatar");
+    if (!avatar.secure_url) {
+        fs.unlinkSync(avatarLocalPath);
+        throw new ApiError(400, "Error while uploading avatar");
     }
     const newThread = await threadModel
         .findByIdAndUpdate(
             thread._id,
             {
-                $set: { avatar: avatar.url },
+                $set: { avatar: avatar.secure_url },
             },
             { new: true }
         )
@@ -87,14 +89,15 @@ const updateThreadBanner = asyncHandler(async (req, res) => {
     }
     const banner = await uploadOnCloudinary(bannerLocalPath);
 
-    if (!banner.url) {
+    if (!banner.secure_url) {
+        fs.unlinkSync(bannerLocalPath);
         throw new ApiError(400, "Error while uploading banner");
     }
     const newThread = await threadModel
         .findByIdAndUpdate(
             thread._id,
             {
-                $set: { banner: banner.url },
+                $set: { banner: banner.secure_url },
             },
             { new: true }
         )
@@ -146,7 +149,7 @@ const getAllThreads = asyncHandler(async (req, res) => {
 });
 export {
     createThread,
-    editDescription,
+    updateDescription,
     updateThreadAvatar,
     updateThreadBanner,
     getOneThread,

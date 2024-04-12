@@ -1,6 +1,7 @@
-import { commentModel } from "./comment.model";
-import { postModel } from "./post.model";
-import { threadModel } from "./thread.model";
-import { userModel } from "./user.model";
+import { commentModel } from "./comment.model.js";
+import { postModel } from "./post.model.js";
+import { threadModel } from "./thread.model.js";
+import { userModel } from "./user.model.js";
+import { verifyEmailModel } from "./verifyEmail.model.js";
 
-export { commentModel, postModel, threadModel, userModel };
+export { userModel, commentModel, postModel, threadModel, verifyEmailModel };

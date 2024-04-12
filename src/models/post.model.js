@@ -7,6 +7,11 @@ const postSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        createdFor: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Thread",
+            required: true,
+        },
         title: {
             type: String,
             required: true,
@@ -18,7 +23,7 @@ const postSchema = new mongoose.Schema(
         },
         pinned: {
             type: Boolean,
-            required: true,
+            default: false,
         },
         mediaUrl: [
             {
@@ -27,7 +32,7 @@ const postSchema = new mongoose.Schema(
         ],
         mediaType: {
             type: String,
-            enum: ["photo", "video"],
+            enum: ["image", "video"],
         },
         upvotes: {
             type: Number,
@@ -48,6 +53,10 @@ const postSchema = new mongoose.Schema(
                 type: String,
             },
         ],
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );

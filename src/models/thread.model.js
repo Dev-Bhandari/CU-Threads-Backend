@@ -26,6 +26,13 @@ const threadSchema = new mongoose.Schema(
             type: String,
             default: DEFAULT_BANNER,
         },
+
+        members: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
         tags: [{ type: String }],
     },
     { timestamps: true }

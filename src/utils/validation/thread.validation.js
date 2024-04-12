@@ -30,7 +30,7 @@ const validateCreateThread = (name) => {
     }
 };
 
-const validateEditDescription = (description) => {
+const validateUpdateDescription = (description) => {
     try {
         editDescriptionZodObject.parse({ description });
     } catch (error) {
@@ -38,4 +38,4 @@ const validateEditDescription = (description) => {
     }
 };
 
-export { validateCreateThread ,validateEditDescription};
+export { validateCreateThread ,validateUpdateDescription};
