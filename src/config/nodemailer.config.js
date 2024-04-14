@@ -17,7 +17,6 @@ const transporter = nodemailer.createTransport({
 
 const mailer = async (user, emailToken) => {
     const url = `https://${FRONTEND_ENDPOINT}/verify-email?emailToken=${emailToken}`;
-    // const url = `http://localhost:5173/verify-email?emailToken=${emailToken}`;
 
     await transporter.sendMail({
         from: "CU Threads <cuthreadsofficial@gmail.com>",

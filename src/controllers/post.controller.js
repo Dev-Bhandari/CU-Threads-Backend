@@ -185,6 +185,14 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
     const matchStage = {
         $match: { createdFor: thread._id },
     };
+    const lookupStageUser = {
+        $lookup: {
+            from: "users",
+            localField: "createdBy",
+            foreignField: "_id",
+            as: "creatorInfo",
+        },
+    };
 
     const addFieldsCondition = user
         ? {
@@ -198,9 +206,15 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
               downVoted: { $not: "" },
           };
     const addFieldsStage = { $addFields: addFieldsCondition };
-
-    const projectStage = {
+    
+    const projectStageUserInfo = {
         $project: {
+            "creatorInfo.email": 0,
+            "creatorInfo.isVerified": 0,
+            "creatorInfo.password": 0,
+            "creatorInfo.refreshToken": 0,
+            "creatorInfo.createdAt": 0,
+            "creatorInfo.updatedAt": 0,
             upVotes: 0,
             downVotes: 0,
             comments: 0,
@@ -213,8 +227,9 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
 
     const posts = await postModel.aggregate([
         matchStage,
+        lookupStageUser,
         addFieldsStage,
-        projectStage,
+        projectStageUserInfo,
         sortStage,
     ]);
 
@@ -245,21 +260,58 @@ const getAllPost = asyncHandler(async (req, res) => {
         : {};
     const matchStage = { $match: matchConditions };
 
+    const lookupStageThread = {
+        $lookup: {
+            from: "threads",
+            localField: "createdFor",
+            foreignField: "_id",
+            as: "threadInfo",
+        },
+    };
+    const lookupStageUser = {
+        $lookup: {
+            from: "users",
+            localField: "createdBy",
+            foreignField: "_id",
+            as: "creatorInfo",
+        },
+    };
     const addFieldsCondition = user
         ? {
               upVoted: { $in: [user._id, "$upVotes"] },
               downVoted: {
                   $in: [user._id, "$downVotes"],
               },
+              totalMembers: { $size: "$members" },
           }
         : {
               upVoted: { $not: "" },
               downVoted: { $not: "" },
+              totalComments: { $size: "$comments" },
+              threadName: { $arrayElemAt: ["$threadInfo.name", 0] },
           };
     const addFieldsStage = { $addFields: addFieldsCondition };
 
-    const projectStage = {
+    const projectStageThreadInfo = {
         $project: {
+            "threadInfo.createdBy": 0,
+            "threadInfo.banner": 0,
+            "threadInfo.members": 0,
+            "threadInfo.tags": 0,
+            "threadInfo.banner": 0,
+            "threadInfo.createdAt": 0,
+            "threadInfo.updatedAt": 0,
+            "threadInfo.description": 0,
+        },
+    };
+    const projectStageUserInfo = {
+        $project: {
+            "creatorInfo.email": 0,
+            "creatorInfo.isVerified": 0,
+            "creatorInfo.password": 0,
+            "creatorInfo.refreshToken": 0,
+            "creatorInfo.createdAt": 0,
+            "creatorInfo.updatedAt": 0,
             upVotes: 0,
             downVotes: 0,
             comments: 0,
@@ -272,8 +324,11 @@ const getAllPost = asyncHandler(async (req, res) => {
 
     const pipeline = [
         matchStage,
+        lookupStageThread,
+        lookupStageUser,
         addFieldsStage,
-        projectStage,
+        projectStageThreadInfo,
+        projectStageUserInfo,
         sortStage,
         limitStage,
     ];
