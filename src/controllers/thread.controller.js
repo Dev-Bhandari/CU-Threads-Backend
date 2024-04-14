@@ -25,6 +25,7 @@ const createThread = asyncHandler(async (req, res) => {
     const thread = await threadModel.create({
         createdBy: user,
         name: `cu/${name}`,
+        members: [user],
     });
     const threadObject = thread.toObject();
     delete threadObject.createdBy;
@@ -124,6 +125,7 @@ const getOneThread = asyncHandler(async (req, res) => {
 const getThreads = asyncHandler(async (req, res) => {
     const { threadIds } = req.body;
 
+    // threadModel.aggregate([{ $match: { _id: threadIds } }, {}]);
     const threads = await threadModel
         .find({ _id: { $in: threadIds } })
         .populate({ path: "createdBy", select: "-password -refreshToken" });
@@ -147,6 +149,7 @@ const getAllThreads = asyncHandler(async (req, res) => {
             new ApiResponse(200, threads, "All threads fetched successfully")
         );
 });
+
 export {
     createThread,
     updateDescription,

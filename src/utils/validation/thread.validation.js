@@ -4,11 +4,11 @@ import customValidationErrorProvider from "./index.validation.js";
 const name = zod
     .string()
     .min(3, { message: "Thread name should be minimum 3 characters" })
-    .refine((s) => !s.includes(" "), "No spaces in thread name")
+    .refine((s) => !s.includes(" "), "Thread name should not contain spaces")
     .refine((value) => {
         const regex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
         return !regex.test(value);
-    }, "No symbols in thread name");
+    }, "Thread name should not contain symbols");
 
 const description = zod
     .string()
@@ -38,4 +38,4 @@ const validateUpdateDescription = (description) => {
     }
 };
 
-export { validateCreateThread ,validateUpdateDescription};
+export { validateCreateThread, validateUpdateDescription };

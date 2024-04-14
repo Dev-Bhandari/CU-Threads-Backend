@@ -34,11 +34,19 @@ const postSchema = new mongoose.Schema(
             type: String,
             enum: ["image", "video"],
         },
-        upvotes: {
-            type: Number,
-            default: 0,
-        },
-        downvotes: {
+        upVotes: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
+        downVotes: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
+        totalVotes: {
             type: Number,
             default: 0,
         },

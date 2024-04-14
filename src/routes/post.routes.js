@@ -1,7 +1,9 @@
 import { Router } from "express";
 import {
     verifyJWT,
+    verifyIfUserExist,
     verifyMember,
+    verifyPost,
     verifyThread,
 } from "../middlewares/auth.middleware.js";
 import {
@@ -9,6 +11,12 @@ import {
     createMember,
     deleteMember,
     createPost,
+    createUpVote,
+    deleteUpVote,
+    createDownVote,
+    deleteDownVote,
+    getAllPostOfThread,
+    getAllPost,
 } from "../controllers/post.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 
@@ -33,5 +41,26 @@ router
         verifyMember,
         createPost
     );
+router
+    .route("/create-upvote")
+    .post(verifyJWT, verifyThread, verifyPost, createUpVote);
+
+router
+    .route("/delete-upvote")
+    .post(verifyJWT, verifyThread, verifyPost, deleteUpVote);
+
+router
+    .route("/create-downvote")
+    .post(verifyJWT, verifyThread, verifyPost, createDownVote);
+
+router
+    .route("/delete-downvote")
+    .post(verifyJWT, verifyThread, verifyPost, deleteDownVote);
+
+router
+    .route("/get-allpostsofthread")
+    .get(verifyIfUserExist, verifyThread, getAllPostOfThread);
+
+router.route("/get-allposts").get(verifyIfUserExist, getAllPost);
 
 export default router;

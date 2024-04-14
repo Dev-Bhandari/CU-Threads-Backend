@@ -41,7 +41,7 @@ router
         verifyCreater,
         updateThreadBanner
     );
-
+//TODO: Add a check if thread exist or not and take thread in params in get requests
 router.route("/get-onethread").get(getOneThread);
 
 router.route("/get-threads").get(getThreads);
