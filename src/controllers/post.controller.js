@@ -206,7 +206,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
               downVoted: { $not: "" },
           };
     const addFieldsStage = { $addFields: addFieldsCondition };
-    
+
     const projectStageUserInfo = {
         $project: {
             "creatorInfo.email": 0,
@@ -282,7 +282,8 @@ const getAllPost = asyncHandler(async (req, res) => {
               downVoted: {
                   $in: [user._id, "$downVotes"],
               },
-              totalMembers: { $size: "$members" },
+              totalComments: { $size: "$comments" },
+              threadName: { $arrayElemAt: ["$threadInfo.name", 0] },
           }
         : {
               upVoted: { $not: "" },
