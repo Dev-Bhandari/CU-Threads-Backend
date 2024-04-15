@@ -196,12 +196,18 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
 
     const addFieldsCondition = user
         ? {
+              absTotalVotes: {
+                  $add: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
               upVoted: { $in: [user._id, "$upVotes"] },
               downVoted: {
                   $in: [user._id, "$downVotes"],
               },
           }
         : {
+              absTotalVotes: {
+                  $add: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
               upVoted: { $not: "" },
               downVoted: { $not: "" },
           };
@@ -222,7 +228,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
     };
 
     const sortCondition =
-        sortBy == "hot" ? { totalVotes: -1 } : { createdAt: -1 };
+        sortBy == "hot" ? { absTotalVotes: -1 } : { createdAt: -1 };
     const sortStage = { $sort: sortCondition };
 
     const posts = await postModel.aggregate([

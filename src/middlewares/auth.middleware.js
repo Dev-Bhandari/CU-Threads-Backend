@@ -89,6 +89,8 @@ export const verifyPost = asyncHandler(async (req, _, next) => {
         }
 
         req.body.post = post;
+        const thread = await threadModel.findById(post.createdFor);
+        req.body.thread = thread;
         next();
     } catch (error) {
         throw new ApiError(400, error?.message || "Something went wrong");

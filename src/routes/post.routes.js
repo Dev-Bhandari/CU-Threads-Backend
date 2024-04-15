@@ -43,19 +43,19 @@ router
     );
 router
     .route("/create-upvote")
-    .post(verifyJWT, verifyThread, verifyPost, createUpVote);
+    .post(verifyJWT, verifyPost, createUpVote);
 
 router
     .route("/delete-upvote")
-    .post(verifyJWT, verifyThread, verifyPost, deleteUpVote);
+    .post(verifyJWT, verifyPost, deleteUpVote);
 
 router
     .route("/create-downvote")
-    .post(verifyJWT, verifyThread, verifyPost, createDownVote);
+    .post(verifyJWT, verifyPost, createDownVote);
 
 router
     .route("/delete-downvote")
-    .post(verifyJWT, verifyThread, verifyPost, deleteDownVote);
+    .post(verifyJWT, verifyPost, deleteDownVote);
 
 router
     .route("/get-allpostsofthread")
