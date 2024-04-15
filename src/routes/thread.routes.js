@@ -4,6 +4,9 @@ import {
     updateDescription,
     updateThreadAvatar,
     updateThreadBanner,
+    checkMember,
+    createMember,
+    deleteMember,
     getAllThreads,
     getOneThread,
     getThreads,
@@ -12,6 +15,7 @@ import {
     verifyJWT,
     verifyCreater,
     verifyThread,
+    verifyMember,
 } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";
 const router = Router();
@@ -41,7 +45,17 @@ router
         verifyCreater,
         updateThreadBanner
     );
-//TODO: Add a check if thread exist or not and take thread in params in get requests
+
+router
+    .route("/verify-member")
+    .post(verifyJWT, verifyThread, verifyMember, checkMember);
+
+router.route("/create-member").post(verifyJWT, verifyThread, createMember);
+
+router
+    .route("/delete-member")
+    .post(verifyJWT, verifyThread, verifyMember, deleteMember);
+
 router.route("/get-onethread").get(getOneThread);
 
 router.route("/get-threads").get(getThreads);

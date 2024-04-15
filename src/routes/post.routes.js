@@ -7,9 +7,6 @@ import {
     verifyThread,
 } from "../middlewares/auth.middleware.js";
 import {
-    checkMember,
-    createMember,
-    deleteMember,
     createPost,
     createUpVote,
     deleteUpVote,
@@ -23,16 +20,6 @@ import upload from "../middlewares/multer.middleware.js";
 const router = Router();
 
 router
-    .route("/verify-member")
-    .post(verifyJWT, verifyThread, verifyMember, checkMember);
-
-router.route("/create-member").post(verifyJWT, verifyThread, createMember);
-
-router
-    .route("/delete-member")
-    .post(verifyJWT, verifyThread, verifyMember, deleteMember);
-
-router
     .route("/create-post")
     .post(
         upload.array("media"),
@@ -41,21 +28,13 @@ router
         verifyMember,
         createPost
     );
-router
-    .route("/create-upvote")
-    .post(verifyJWT, verifyPost, createUpVote);
+router.route("/create-upvote").post(verifyJWT, verifyPost, createUpVote);
 
-router
-    .route("/delete-upvote")
-    .post(verifyJWT, verifyPost, deleteUpVote);
+router.route("/delete-upvote").post(verifyJWT, verifyPost, deleteUpVote);
 
-router
-    .route("/create-downvote")
-    .post(verifyJWT, verifyPost, createDownVote);
+router.route("/create-downvote").post(verifyJWT, verifyPost, createDownVote);
 
-router
-    .route("/delete-downvote")
-    .post(verifyJWT, verifyPost, deleteDownVote);
+router.route("/delete-downvote").post(verifyJWT, verifyPost, deleteDownVote);
 
 router
     .route("/get-allpostsofthread")

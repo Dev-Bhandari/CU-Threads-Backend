@@ -108,6 +108,39 @@ const updateThreadBanner = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, newThread, "Banner uploaded successfully"));
 });
 
+const checkMember = asyncHandler(async (_, res) => {
+    return res.status(200).json(new ApiResponse(200, {}, "User is joined"));
+});
+
+const createMember = asyncHandler(async (req, res) => {
+    const { user, thread } = req.body;
+    if (
+        thread.members.includes(user._id) ||
+        thread.createdBy.toString() == user._id.toString()
+    ) {
+        throw new ApiError(400, `User has already joined ${thread.name}`);
+    }
+    await threadModel.findByIdAndUpdate(thread._id, {
+        $push: { members: user },
+    });
+    return res
+        .status(201)
+        .json(new ApiResponse(200, {}, `${thread.name} joined successfully`));
+});
+
+const deleteMember = asyncHandler(async (req, res) => {
+    const { user, thread } = req.body;
+    if (thread.createdBy.toString() == user._id.toString()) {
+        throw new ApiError(400, "Cannot remove the owner");
+    }
+    await threadModel.findByIdAndUpdate(thread._id, {
+        $pull: { members: user._id },
+    });
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Member deleted successfully"));
+});
+
 const getOneThread = asyncHandler(async (req, res) => {
     const { threadId } = req.body;
     const thread = await threadModel
@@ -155,6 +188,9 @@ export {
     updateDescription,
     updateThreadAvatar,
     updateThreadBanner,
+    checkMember,
+    createMember,
+    deleteMember,
     getOneThread,
     getThreads,
     getAllThreads,

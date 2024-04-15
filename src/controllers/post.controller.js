@@ -5,39 +5,6 @@ import ApiError from "../utils/ApiError.js";
 import { validateCreatePost } from "../utils/validation/post.validation.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 
-const checkMember = asyncHandler(async (_, res) => {
-    return res.status(200).json(new ApiResponse(200, {}, "User is joined"));
-});
-
-const createMember = asyncHandler(async (req, res) => {
-    const { user, thread } = req.body;
-    if (
-        thread.members.includes(user._id) ||
-        thread.createdBy.toString() == user._id.toString()
-    ) {
-        throw new ApiError(400, `User has already joined ${thread.name}`);
-    }
-    await threadModel.findByIdAndUpdate(thread._id, {
-        $push: { members: user },
-    });
-    return res
-        .status(201)
-        .json(new ApiResponse(200, {}, `${thread.name} joined successfully`));
-});
-
-const deleteMember = asyncHandler(async (req, res) => {
-    const { user, thread } = req.body;
-    if (thread.createdBy.toString() == user._id.toString()) {
-        throw new ApiError(400, "Cannot remove the owner");
-    }
-    await threadModel.findByIdAndUpdate(thread._id, {
-        $pull: { members: user._id },
-    });
-    return res
-        .status(200)
-        .json(new ApiResponse(200, {}, "Member deleted successfully"));
-});
-
 const createPost = asyncHandler(async (req, res) => {
     const { user, thread, title, textContent, tags } = req.body;
     const error = validateCreatePost(title, textContent);
@@ -364,9 +331,6 @@ const getAllPost = asyncHandler(async (req, res) => {
 });
 
 export {
-    checkMember,
-    createMember,
-    deleteMember,
     createPost,
     createUpVote,
     deleteUpVote,
