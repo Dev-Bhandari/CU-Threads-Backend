@@ -81,10 +81,14 @@ const createUpVote = asyncHandler(async (req, res) => {
     await postModel.findByIdAndUpdate(post._id, {
         $pull: { downVotes: user._id },
     });
-    await postModel.findByIdAndUpdate(post._id, {
-        $push: { upVotes: user },
-        $inc: { totalVotes: downVoted ? 2 : 1 },
-    });
+    await postModel.findByIdAndUpdate(
+        post._id,
+        {
+            $push: { upVotes: user },
+            $inc: { totalVotes: downVoted ? 2 : 1 },
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -104,10 +108,14 @@ const deleteUpVote = asyncHandler(async (req, res) => {
     if (!upVoted) {
         throw new ApiError(400, "Upvoted does not exist");
     }
-    await postModel.findByIdAndUpdate(post._id, {
-        $pull: { upVotes: user._id },
-        $inc: { totalVotes: -1 },
-    });
+    await postModel.findByIdAndUpdate(
+        post._id,
+        {
+            $pull: { upVotes: user._id },
+            $inc: { totalVotes: -1 },
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -131,10 +139,14 @@ const createDownVote = asyncHandler(async (req, res) => {
     await postModel.findByIdAndUpdate(post._id, {
         $pull: { upVotes: user._id },
     });
-    await postModel.findByIdAndUpdate(post._id, {
-        $push: { downVotes: user },
-        $inc: { totalVotes: upVoted ? -2 : -1 },
-    });
+    await postModel.findByIdAndUpdate(
+        post._id,
+        {
+            $push: { downVotes: user },
+            $inc: { totalVotes: upVoted ? -2 : -1 },
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
@@ -154,10 +166,14 @@ const deleteDownVote = asyncHandler(async (req, res) => {
     if (!downVoted) {
         throw new ApiError(400, "Downvoted does not exist");
     }
-    await postModel.findByIdAndUpdate(post._id, {
-        $pull: { downVotes: user._id },
-        $inc: { totalVotes: 1 },
-    });
+    await postModel.findByIdAndUpdate(
+        post._id,
+        {
+            $pull: { downVotes: user._id },
+            $inc: { totalVotes: 1 },
+        },
+        { new: true }
+    );
 
     return res
         .status(200)
