@@ -81,7 +81,7 @@ const createUpVote = asyncHandler(async (req, res) => {
     await postModel.findByIdAndUpdate(post._id, {
         $pull: { downVotes: user._id },
     });
-    await postModel.findByIdAndUpdate(
+    const newPost = await postModel.findByIdAndUpdate(
         post._id,
         {
             $push: { upVotes: user },
@@ -95,7 +95,7 @@ const createUpVote = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
-                { totalVotes: post.totalVotes },
+                { totalVotes: newPost.totalVotes },
                 "Upvoted successfully"
             )
         );
@@ -108,7 +108,7 @@ const deleteUpVote = asyncHandler(async (req, res) => {
     if (!upVoted) {
         throw new ApiError(400, "Upvoted does not exist");
     }
-    await postModel.findByIdAndUpdate(
+    const newPost = await postModel.findByIdAndUpdate(
         post._id,
         {
             $pull: { upVotes: user._id },
@@ -122,7 +122,7 @@ const deleteUpVote = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
-                { totalVotes: post.totalVotes },
+                { totalVotes: newPost.totalVotes },
                 "Upvote removed successfully"
             )
         );
@@ -139,7 +139,7 @@ const createDownVote = asyncHandler(async (req, res) => {
     await postModel.findByIdAndUpdate(post._id, {
         $pull: { upVotes: user._id },
     });
-    await postModel.findByIdAndUpdate(
+    const newPost = await postModel.findByIdAndUpdate(
         post._id,
         {
             $push: { downVotes: user },
@@ -153,7 +153,7 @@ const createDownVote = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
-                { totalVotes: post.totalVotes },
+                { totalVotes: newPost.totalVotes },
                 "Downvoted successfully"
             )
         );
@@ -166,7 +166,7 @@ const deleteDownVote = asyncHandler(async (req, res) => {
     if (!downVoted) {
         throw new ApiError(400, "Downvoted does not exist");
     }
-    await postModel.findByIdAndUpdate(
+    const newPost = await postModel.findByIdAndUpdate(
         post._id,
         {
             $pull: { downVotes: user._id },
@@ -174,13 +174,12 @@ const deleteDownVote = asyncHandler(async (req, res) => {
         },
         { new: true }
     );
-
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
-                { totalVotes: post.totalVotes },
+                { totalVotes: newPost.totalVotes },
                 "Downvote removed successfully"
             )
         );
