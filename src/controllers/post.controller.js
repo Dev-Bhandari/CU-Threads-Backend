@@ -88,7 +88,13 @@ const createUpVote = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, {}, "Upvoted successfully"));
+        .json(
+            new ApiResponse(
+                200,
+                { totalVotes: post.totalVotes },
+                "Upvoted successfully"
+            )
+        );
 });
 
 const deleteUpVote = asyncHandler(async (req, res) => {
@@ -105,7 +111,13 @@ const deleteUpVote = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, {}, "Upvote removed successfully"));
+        .json(
+            new ApiResponse(
+                200,
+                { totalVotes: post.totalVotes },
+                "Upvote removed successfully"
+            )
+        );
 });
 
 const createDownVote = asyncHandler(async (req, res) => {
@@ -126,7 +138,13 @@ const createDownVote = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, {}, "Downvoted successfully"));
+        .json(
+            new ApiResponse(
+                200,
+                { totalVotes: post.totalVotes },
+                "Downvoted successfully"
+            )
+        );
 });
 
 const deleteDownVote = asyncHandler(async (req, res) => {
@@ -143,7 +161,13 @@ const deleteDownVote = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, {}, "Downvote removed successfully"));
+        .json(
+            new ApiResponse(
+                200,
+                { totalVotes: post.totalVotes },
+                "Downvote removed successfully"
+            )
+        );
 });
 
 const getAllPostOfThread = asyncHandler(async (req, res) => {
