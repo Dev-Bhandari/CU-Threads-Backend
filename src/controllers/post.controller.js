@@ -186,11 +186,31 @@ const deleteDownVote = asyncHandler(async (req, res) => {
 });
 
 const getAllPostOfThread = asyncHandler(async (req, res) => {
-    const { user, thread, sortBy } = req.body;
+    const { user, thread } = req.body;
+    const { sortBy } = req.query;
 
-    const matchStage = {
-        $match: { createdFor: thread._id },
-    };
+    const pageSize = 2;
+    const sortedField = "createdAt";
+
+    let lastSortedFieldId = null;
+    let lastSortedFieldValue = null;
+
+    if (req.query.lastId) {
+        lastSortedFieldId = req.query.lastId;
+        const post = await postModel.findById(lastSortedFieldId);
+        if (!post) {
+            throw new ApiError(400, "Not a valid Post Id");
+        }
+        lastSortedFieldValue = post.createdAt;
+    }
+    const matchConditions = lastSortedFieldValue
+        ? {
+              createdFor: thread._id,
+              [sortedField]: { $lt: lastSortedFieldValue },
+          }
+        : { createdFor: thread._id };
+    const matchStage = { $match: matchConditions };
+
     const lookupStageUser = {
         $lookup: {
             from: "users",
@@ -209,6 +229,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
               downVoted: {
                   $in: [user._id, "$downVotes"],
               },
+              totalComments: { $size: "$comments" },
           }
         : {
               absTotalVotes: {
@@ -216,6 +237,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
               },
               upVoted: { $not: "" },
               downVoted: { $not: "" },
+              totalComments: { $size: "$comments" },
           };
     const addFieldsStage = { $addFields: addFieldsCondition };
 
@@ -234,19 +256,40 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
     };
 
     const sortCondition =
-        sortBy == "hot" ? { absTotalVotes: -1 } : { createdAt: -1 };
+        sortBy == "hot" ? { absTotalVotes: -1 } : { [sortedField]: -1 };
     const sortStage = { $sort: sortCondition };
 
-    const posts = await postModel.aggregate([
+    const limitStage = { $limit: pageSize + 1 };
+
+    const pipeline = [
         matchStage,
         lookupStageUser,
         addFieldsStage,
         projectStageUserInfo,
         sortStage,
-    ]);
+        limitStage,
+    ];
+
+    const posts = await postModel.aggregate(pipeline);
+
+    let hasNextPage = false;
+
+    if (posts.length > pageSize) {
+        hasNextPage = true;
+        posts.pop();
+    }
+
+    if (posts.length > 0) {
+        const lastPost = posts[posts.length - 1];
+        lastSortedFieldId = lastPost._id;
+    }
 
     res.status(200).json(
-        new ApiResponse(200, posts, "Posts fetched successfully")
+        new ApiResponse(
+            200,
+            { hasNextPage, posts, lastSortedFieldId },
+            "Posts fetched successfully"
+        )
     );
 });
 
