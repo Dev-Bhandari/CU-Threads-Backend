@@ -20,7 +20,7 @@ import upload from "../middlewares/multer.middleware.js";
 const router = Router();
 
 router
-    .route("/create-post")
+    .route("/create-post/:threadName")
     .post(
         upload.array("media"),
         verifyJWT,
@@ -37,7 +37,7 @@ router.route("/create-downvote").post(verifyJWT, verifyPost, createDownVote);
 router.route("/delete-downvote").post(verifyJWT, verifyPost, deleteDownVote);
 
 router
-    .route("/get-allpostsofthread")
+    .route("/get-allposts/:threadName")
     .get(verifyIfUserExist, verifyThread, getAllPostOfThread);
 
 router.route("/get-allposts").get(verifyIfUserExist, getAllPost);

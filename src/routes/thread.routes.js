@@ -23,11 +23,11 @@ const router = Router();
 router.route("/create-thread").post(verifyJWT, createThread);
 
 router
-    .route("/change-description")
+    .route("/change-description/:threadName")
     .post(verifyJWT, verifyThread, verifyCreater, updateDescription);
 
 router
-    .route("/change-avatar")
+    .route("/change-avatar/:threadName")
     .patch(
         upload.single("avatar"),
         verifyJWT,
@@ -37,7 +37,7 @@ router
     );
 
 router
-    .route("/change-banner")
+    .route("/change-banner/:threadName")
     .patch(
         upload.single("banner"),
         verifyJWT,
@@ -47,18 +47,20 @@ router
     );
 
 router
-    .route("/verify-member")
+    .route("/verify-member/:threadName")
     .post(verifyJWT, verifyThread, verifyMember, checkMember);
 
-router.route("/create-member").post(verifyJWT, verifyThread, createMember);
+router
+    .route("/create-member/:threadName")
+    .post(verifyJWT, verifyThread, createMember);
 
 router
-    .route("/delete-member")
+    .route("/delete-member/:threadName")
     .post(verifyJWT, verifyThread, verifyMember, deleteMember);
 
-router.route("/get-onethread").get(getOneThread);
+router.route("/get-onethread/:threadName").get(getOneThread);
 
-router.route("/get-threads").get(getThreads);
+router.route("/get-threads").post(getThreads);
 
 router.route("/get-allthreads").get(getAllThreads);
 

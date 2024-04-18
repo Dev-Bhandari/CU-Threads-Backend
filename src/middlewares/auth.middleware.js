@@ -38,8 +38,11 @@ export const verifyIfUserExist = asyncHandler(async (req, _, next) => {
 
 export const verifyThread = asyncHandler(async (req, _, next) => {
     try {
-        const { threadId } = req.body;
-        const thread = await threadModel.findById(threadId);
+        const { threadName } = req.params;
+        if (!threadName) {
+            throw new ApiError(400, "Thread name cannot be empty");
+        }
+        const thread = await threadModel.findOne({ name: threadName });
         if (!thread) {
             throw new ApiError(404, "Thread not found");
         }

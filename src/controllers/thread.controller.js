@@ -24,7 +24,7 @@ const createThread = asyncHandler(async (req, res) => {
 
     const thread = await threadModel.create({
         createdBy: user,
-        name: `cu/${name}`,
+        name: `${name}`,
         members: [user],
     });
     const threadObject = thread.toObject();
@@ -142,11 +142,13 @@ const deleteMember = asyncHandler(async (req, res) => {
 });
 
 const getOneThread = asyncHandler(async (req, res) => {
-    const { threadId } = req.body;
+    const { threadName } = req.params;
+    if (!threadName) {
+        throw new ApiError(400, "Thread Name cannot be empty");
+    }
     const thread = await threadModel
-        .findById(threadId)
+        .findOne({ name: threadName })
         .populate({ path: "createdBy", select: "-password -refreshToken" });
-
     if (!thread) {
         throw new ApiError(404, "Thread not found");
     }
@@ -156,11 +158,11 @@ const getOneThread = asyncHandler(async (req, res) => {
 });
 
 const getThreads = asyncHandler(async (req, res) => {
-    const { threadIds } = req.body;
+    const { threadName } = req.body;
 
     // threadModel.aggregate([{ $match: { _id: threadIds } }, {}]);
     const threads = await threadModel
-        .find({ _id: { $in: threadIds } })
+        .find({ name: { $in: threadName } })
         .populate({ path: "createdBy", select: "-password -refreshToken" });
 
     if (threads.length == 0) {
