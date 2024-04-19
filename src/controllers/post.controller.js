@@ -211,6 +211,15 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
         : { createdFor: thread._id };
     const matchStage = { $match: matchConditions };
 
+    const lookupStageThread = {
+        $lookup: {
+            from: "threads",
+            localField: "createdFor",
+            foreignField: "_id",
+            as: "threadInfo",
+        },
+    };
+
     const lookupStageUser = {
         $lookup: {
             from: "users",
@@ -222,6 +231,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
 
     const addFieldsCondition = user
         ? {
+              joined: { $in: [user._id, "$threadInfo.members"] },
               absTotalVotes: {
                   $add: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
               },
@@ -249,6 +259,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
             "creatorInfo.refreshToken": 0,
             "creatorInfo.createdAt": 0,
             "creatorInfo.updatedAt": 0,
+            threadInfo: 0,
             upVotes: 0,
             downVotes: 0,
             comments: 0,
@@ -263,6 +274,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
 
     const pipeline = [
         matchStage,
+        lookupStageThread,
         lookupStageUser,
         addFieldsStage,
         projectStageUserInfo,
@@ -333,6 +345,7 @@ const getAllPost = asyncHandler(async (req, res) => {
     };
     const addFieldsCondition = user
         ? {
+              joined: { $in: [user._id, "$threadInfo.members"] },
               upVoted: { $in: [user._id, "$upVotes"] },
               downVoted: {
                   $in: [user._id, "$downVotes"],
@@ -352,12 +365,12 @@ const getAllPost = asyncHandler(async (req, res) => {
         $project: {
             "threadInfo.createdBy": 0,
             "threadInfo.banner": 0,
-            "threadInfo.members": 0,
             "threadInfo.tags": 0,
             "threadInfo.banner": 0,
             "threadInfo.createdAt": 0,
             "threadInfo.updatedAt": 0,
             "threadInfo.description": 0,
+            "threadInfo.members": 0,
         },
     };
     const projectStageUserInfo = {

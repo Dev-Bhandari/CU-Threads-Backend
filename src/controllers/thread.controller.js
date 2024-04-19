@@ -109,7 +109,7 @@ const updateThreadBanner = asyncHandler(async (req, res) => {
 });
 
 const checkMember = asyncHandler(async (_, res) => {
-    return res.status(200).json(new ApiResponse(200, {}, "User is joined"));
+    return res.status(200).json(new ApiResponse(200, {}, "User is a member"));
 });
 
 const createMember = asyncHandler(async (req, res) => {
