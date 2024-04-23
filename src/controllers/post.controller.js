@@ -242,6 +242,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
               totalComments: { $size: "$comments" },
           }
         : {
+              joined: { $not: "" },
               absTotalVotes: {
                   $add: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
               },
@@ -354,6 +355,7 @@ const getAllPost = asyncHandler(async (req, res) => {
               threadName: { $arrayElemAt: ["$threadInfo.name", 0] },
           }
         : {
+              joined: { $not: "" },
               upVoted: { $not: "" },
               downVoted: { $not: "" },
               totalComments: { $size: "$comments" },
