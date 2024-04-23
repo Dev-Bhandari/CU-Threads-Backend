@@ -187,7 +187,6 @@ const deleteDownVote = asyncHandler(async (req, res) => {
 
 const getAllPostOfThread = asyncHandler(async (req, res) => {
     const { user, thread } = req.body;
-    const { sortBy } = req.query;
 
     const pageSize = 2;
     const sortedField = "createdAt";
@@ -242,12 +241,12 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
               totalComments: { $size: "$comments" },
           }
         : {
-              joined: { $not: "" },
+              joined: false,
               absTotalVotes: {
                   $add: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
               },
-              upVoted: { $not: "" },
-              downVoted: { $not: "" },
+              upVoted: false,
+              downVoted: false,
               totalComments: { $size: "$comments" },
           };
     const addFieldsStage = { $addFields: addFieldsCondition };
@@ -267,9 +266,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
         },
     };
 
-    const sortCondition =
-        sortBy == "hot" ? { absTotalVotes: -1 } : { [sortedField]: -1 };
-    const sortStage = { $sort: sortCondition };
+    const sortStage = { $sort: { [sortedField]: -1 } };
 
     const limitStage = { $limit: pageSize + 1 };
 
@@ -355,9 +352,9 @@ const getAllPost = asyncHandler(async (req, res) => {
               threadName: { $arrayElemAt: ["$threadInfo.name", 0] },
           }
         : {
-              joined: { $not: "" },
-              upVoted: { $not: "" },
-              downVoted: { $not: "" },
+              joined: false,
+              upVoted: false,
+              downVoted: false,
               totalComments: { $size: "$comments" },
               threadName: { $arrayElemAt: ["$threadInfo.name", 0] },
           };
@@ -365,7 +362,6 @@ const getAllPost = asyncHandler(async (req, res) => {
 
     const projectStageThreadInfo = {
         $project: {
-            "threadInfo.createdBy": 0,
             "threadInfo.banner": 0,
             "threadInfo.tags": 0,
             "threadInfo.banner": 0,

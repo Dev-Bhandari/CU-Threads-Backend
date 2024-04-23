@@ -8,6 +8,7 @@ import {
 } from "../utils/validation/thread.validation.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import fs from "fs";
+import { pipeline } from "stream";
 
 const createThread = asyncHandler(async (req, res) => {
     const { user, name } = req.body;
@@ -125,7 +126,13 @@ const createMember = asyncHandler(async (req, res) => {
     });
     return res
         .status(201)
-        .json(new ApiResponse(200, {}, `${thread.name} joined successfully`));
+        .json(
+            new ApiResponse(
+                200,
+                { joined: true },
+                `${thread.name} joined successfully`
+            )
+        );
 });
 
 const deleteMember = asyncHandler(async (req, res) => {
@@ -138,23 +145,71 @@ const deleteMember = asyncHandler(async (req, res) => {
     });
     return res
         .status(200)
-        .json(new ApiResponse(200, {}, "Member deleted successfully"));
+        .json(
+            new ApiResponse(
+                200,
+                { joined: false },
+                "Member deleted successfully"
+            )
+        );
 });
 
 const getOneThread = asyncHandler(async (req, res) => {
+    const { user } = req.body;
     const { threadName } = req.params;
     if (!threadName) {
         throw new ApiError(400, "Thread Name cannot be empty");
     }
-    const thread = await threadModel
-        .findOne({ name: threadName })
-        .populate({ path: "createdBy", select: "-password -refreshToken" });
+    const matchStage = {
+        $match: { name: threadName },
+    };
+    const lookupStage = {
+        $lookup: {
+            from: "users",
+            localField: "createdBy",
+            foreignField: "_id",
+            as: "creatorInfo",
+        },
+    };
+    const addFieldsCondition = user
+        ? {
+              joined: { $in: [user._id, "$members"] },
+              totalMembers: { $size: "$members" },
+              owner: { $eq: ["$createdBy", user._id] },
+          }
+        : {
+              joined: false,
+              totalMembers: { $size: "$members" },
+              owner: false,
+          };
+    const addFieldsStage = {
+        $addFields: addFieldsCondition,
+    };
+    const projectStage = {
+        $project: {
+            "creatorInfo.email": 0,
+            "creatorInfo.isVerified": 0,
+            "creatorInfo.password": 0,
+            "creatorInfo.refreshToken": 0,
+            "creatorInfo.createdAt": 0,
+            "creatorInfo.updatedAt": 0,
+            members: 0,
+        },
+    };
+
+    const thread = await threadModel.aggregate([
+        matchStage,
+        lookupStage,
+        addFieldsStage,
+        projectStage,
+    ]);
+
     if (!thread) {
         throw new ApiError(404, "Thread not found");
     }
     return res
         .status(200)
-        .json(new ApiResponse(200, thread, "Thread fetched successfully"));
+        .json(new ApiResponse(200, thread[0], "Thread fetched successfully"));
 });
 
 const getThreads = asyncHandler(async (req, res) => {
@@ -174,15 +229,37 @@ const getThreads = asyncHandler(async (req, res) => {
 });
 
 const getAllThreads = asyncHandler(async (req, res) => {
-    const threads = await threadModel
-        .find()
-        .populate({ path: "createdBy", select: "-password -refreshToken" });
+    const { user } = req.body;
 
+    const addFieldsCondition = user
+        ? {
+              joined: { $in: [user._id, "$members"] },
+              totalMembers: { $size: "$members" },
+              owner: { $eq: ["$createdBy", user._id] },
+          }
+        : {
+              joined: false,
+              totalMembers: { $size: "$members" },
+              owner: false,
+          };
+    const addFieldsStage = {
+        $addFields: addFieldsCondition,
+    };
+    const projectStage = {
+        $project: {
+            tags: 0,
+            members: 0,
+        },
+    };
+
+    const thread = await threadModel.aggregate([addFieldsStage, projectStage]);
+
+    if (!thread) {
+        throw new ApiError(404, "Thread not found");
+    }
     return res
         .status(200)
-        .json(
-            new ApiResponse(200, threads, "All threads fetched successfully")
-        );
+        .json(new ApiResponse(200, thread, "Thread fetched successfully"));
 });
 
 export {
