@@ -93,9 +93,7 @@ const createUpVote = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             {
-                totalVotes: Math.abs(
-                    newPost.upVotes.length - newPost.downVotes.length
-                ),
+                totalVotes: newPost.upVotes.length - newPost.downVotes.length,
             },
             "Upvoted successfully"
         )
@@ -121,9 +119,7 @@ const deleteUpVote = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             {
-                totalVotes: Math.abs(
-                    newPost.upVotes.length - newPost.downVotes.length
-                ),
+                totalVotes: newPost.upVotes.length - newPost.downVotes.length,
             },
             "Upvote removed successfully"
         )
@@ -153,9 +149,7 @@ const createDownVote = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             {
-                totalVotes: Math.abs(
-                    newPost.upVotes.length - newPost.downVotes.length
-                ),
+                totalVotes: newPost.upVotes.length - newPost.downVotes.length,
             },
             "Downvoted successfully"
         )
@@ -181,9 +175,7 @@ const deleteDownVote = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             {
-                totalVotes: Math.abs(
-                    newPost.upVotes.length - newPost.downVotes.length
-                ),
+                totalVotes: newPost.upVotes.length - newPost.downVotes.length,
             },
             "Downvote removed successfully"
         )
@@ -236,8 +228,8 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
     const addFieldsCondition = user
         ? {
               joined: { $in: [user._id, "$threadInfo.members"] },
-              absTotalVotes: {
-                  $add: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
               },
               upVoted: { $in: [user._id, "$upVotes"] },
               downVoted: {
@@ -247,8 +239,8 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
           }
         : {
               joined: false,
-              absTotalVotes: {
-                  $add: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
               },
               upVoted: false,
               downVoted: false,
@@ -353,6 +345,9 @@ const getAllPost = asyncHandler(async (req, res) => {
               downVoted: {
                   $in: [user._id, "$downVotes"],
               },
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
               totalComments: { $size: "$comments" },
               threadName: { $arrayElemAt: ["$threadInfo.name", 0] },
           }
@@ -360,6 +355,9 @@ const getAllPost = asyncHandler(async (req, res) => {
               joined: false,
               upVoted: false,
               downVoted: false,
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
               totalComments: { $size: "$comments" },
               threadName: { $arrayElemAt: ["$threadInfo.name", 0] },
           };
