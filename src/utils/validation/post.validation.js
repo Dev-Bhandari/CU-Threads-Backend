@@ -3,18 +3,19 @@ import customValidationErrorProvider from "./index.validation.js";
 
 const title = zod.string().trim().min(1, { message: "Title cannot be empty" });
 
-const content = zod
+const textContent = zod
     .string()
-    .max(500, "Content cannot be more than 500 characters");
+    .trim()
+    .max(1000, "Text cannot be more than 1000 characters");
 
 const createPostZodObject = zod.object({
     title,
-    content,
+    textContent,
 });
 
-const validateCreatePost = (title, content) => {
+const validateCreatePost = (title, textContent) => {
     try {
-        createPostZodObject.parse({ title, content });
+        createPostZodObject.parse({ title, textContent });
     } catch (error) {
         return customValidationErrorProvider(error);
     }

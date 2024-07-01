@@ -1,6 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import { postModel, threadModel } from "../models/index.js";
+import { postModel } from "../models/index.js";
 import ApiError from "../utils/ApiError.js";
 import { validateCreatePost } from "../utils/validation/post.validation.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
@@ -85,20 +85,21 @@ const createUpVote = asyncHandler(async (req, res) => {
         post._id,
         {
             $push: { upVotes: user },
-            $inc: { totalVotes: downVoted ? 2 : 1 },
         },
         { new: true }
     );
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                { totalVotes: newPost.totalVotes },
-                "Upvoted successfully"
-            )
-        );
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                totalVotes: Math.abs(
+                    newPost.upVotes.length - newPost.downVotes.length
+                ),
+            },
+            "Upvoted successfully"
+        )
+    );
 });
 
 const deleteUpVote = asyncHandler(async (req, res) => {
@@ -112,20 +113,21 @@ const deleteUpVote = asyncHandler(async (req, res) => {
         post._id,
         {
             $pull: { upVotes: user._id },
-            $inc: { totalVotes: -1 },
         },
         { new: true }
     );
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                { totalVotes: newPost.totalVotes },
-                "Upvote removed successfully"
-            )
-        );
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                totalVotes: Math.abs(
+                    newPost.upVotes.length - newPost.downVotes.length
+                ),
+            },
+            "Upvote removed successfully"
+        )
+    );
 });
 
 const createDownVote = asyncHandler(async (req, res) => {
@@ -143,20 +145,21 @@ const createDownVote = asyncHandler(async (req, res) => {
         post._id,
         {
             $push: { downVotes: user },
-            $inc: { totalVotes: upVoted ? -2 : -1 },
         },
         { new: true }
     );
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                { totalVotes: newPost.totalVotes },
-                "Downvoted successfully"
-            )
-        );
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                totalVotes: Math.abs(
+                    newPost.upVotes.length - newPost.downVotes.length
+                ),
+            },
+            "Downvoted successfully"
+        )
+    );
 });
 
 const deleteDownVote = asyncHandler(async (req, res) => {
@@ -170,19 +173,21 @@ const deleteDownVote = asyncHandler(async (req, res) => {
         post._id,
         {
             $pull: { downVotes: user._id },
-            $inc: { totalVotes: 1 },
         },
         { new: true }
     );
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                { totalVotes: newPost.totalVotes },
-                "Downvote removed successfully"
-            )
-        );
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                totalVotes: Math.abs(
+                    newPost.upVotes.length - newPost.downVotes.length
+                ),
+            },
+            "Downvote removed successfully"
+        )
+    );
 });
 
 const getAllPostOfThread = asyncHandler(async (req, res) => {
