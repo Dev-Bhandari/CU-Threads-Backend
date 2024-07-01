@@ -2,7 +2,12 @@ import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET } from "../config/server.config.js";
-import { userModel, threadModel, postModel } from "../models/index.js";
+import {
+    userModel,
+    threadModel,
+    postModel,
+    commentModel,
+} from "../models/index.js";
 
 export const verifyJWT = asyncHandler(async (req, _, next) => {
     try {
@@ -94,6 +99,20 @@ export const verifyPost = asyncHandler(async (req, _, next) => {
         req.body.post = post;
         const thread = await threadModel.findById(post.createdFor);
         req.body.thread = thread;
+        next();
+    } catch (error) {
+        throw new ApiError(400, error?.message || "Something went wrong");
+    }
+});
+
+export const verifyComment = asyncHandler(async (req, res, next) => {
+    try {
+        const { parentCommentId, post } = req.body;
+        if (parentCommentId) {
+            const comment = await commentModel.findById(parentCommentId);
+            if (comment.createdFor.toString() === post._id.toString())
+                req.body.parentComment = comment;
+        }
         next();
     } catch (error) {
         throw new ApiError(400, error?.message || "Something went wrong");

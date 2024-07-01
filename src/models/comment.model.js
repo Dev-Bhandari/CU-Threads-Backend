@@ -7,12 +7,12 @@ const commentSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
-        postId: {
+        createdFor: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Post",
             required: true,
         },
-        parentCommentId: {
+        parentComment: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Comment",
             default: null,
@@ -21,14 +21,6 @@ const commentSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true,
-        },
-        upvotes: {
-            type: Number,
-            default: 0,
-        },
-        downvotes: {
-            type: Number,
-            default: 0,
         },
         isDeleted: {
             type: Boolean,

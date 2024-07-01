@@ -207,7 +207,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
         : { createdFor: thread._id };
     const matchStage = { $match: matchConditions };
 
-    const lookupStageThread = {
+    const lookupThreadStage = {
         $lookup: {
             from: "threads",
             localField: "createdFor",
@@ -216,7 +216,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
         },
     };
 
-    const lookupStageUser = {
+    const lookupUserStage = {
         $lookup: {
             from: "users",
             localField: "createdBy",
@@ -248,7 +248,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
           };
     const addFieldsStage = { $addFields: addFieldsCondition };
 
-    const projectStageUserInfo = {
+    const projectUserInfoStage = {
         $project: {
             "creatorInfo.email": 0,
             "creatorInfo.isVerified": 0,
@@ -269,10 +269,10 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
 
     const pipeline = [
         matchStage,
-        lookupStageThread,
-        lookupStageUser,
+        lookupThreadStage,
+        lookupUserStage,
         addFieldsStage,
-        projectStageUserInfo,
+        projectUserInfoStage,
         sortStage,
         limitStage,
     ];
@@ -322,7 +322,7 @@ const getAllPost = asyncHandler(async (req, res) => {
         : {};
     const matchStage = { $match: matchConditions };
 
-    const lookupStageThread = {
+    const lookupThreadStage = {
         $lookup: {
             from: "threads",
             localField: "createdFor",
@@ -330,7 +330,7 @@ const getAllPost = asyncHandler(async (req, res) => {
             as: "threadInfo",
         },
     };
-    const lookupStageUser = {
+    const lookupUserStage = {
         $lookup: {
             from: "users",
             localField: "createdBy",
@@ -363,7 +363,7 @@ const getAllPost = asyncHandler(async (req, res) => {
           };
     const addFieldsStage = { $addFields: addFieldsCondition };
 
-    const projectStageThreadInfo = {
+    const projectThreadInfoStage = {
         $project: {
             "threadInfo.banner": 0,
             "threadInfo.tags": 0,
@@ -374,7 +374,7 @@ const getAllPost = asyncHandler(async (req, res) => {
             "threadInfo.members": 0,
         },
     };
-    const projectStageUserInfo = {
+    const projectUserInfoStage = {
         $project: {
             "creatorInfo.email": 0,
             "creatorInfo.isVerified": 0,
@@ -394,11 +394,11 @@ const getAllPost = asyncHandler(async (req, res) => {
 
     const pipeline = [
         matchStage,
-        lookupStageThread,
-        lookupStageUser,
+        lookupThreadStage,
+        lookupUserStage,
         addFieldsStage,
-        projectStageThreadInfo,
-        projectStageUserInfo,
+        projectThreadInfoStage,
+        projectUserInfoStage,
         sortStage,
         limitStage,
     ];
