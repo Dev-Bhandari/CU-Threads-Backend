@@ -181,7 +181,81 @@ const deleteDownVote = asyncHandler(async (req, res) => {
         )
     );
 });
+const getPost = asyncHandler(async (req, res) => {
+    const { user } = req.body;
+    let { post } = req.body;
 
+    const matchStage = { $match: { _id: post._id } };
+
+    const lookupThreadStage = {
+        $lookup: {
+            from: "threads",
+            localField: "createdFor",
+            foreignField: "_id",
+            as: "threadInfo",
+        },
+    };
+
+    const lookupUserStage = {
+        $lookup: {
+            from: "users",
+            localField: "createdBy",
+            foreignField: "_id",
+            as: "creatorInfo",
+        },
+    };
+
+    const addFieldsCondition = user
+        ? {
+              joined: { $in: [user._id, "$threadInfo.members"] },
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
+              upVoted: { $in: [user._id, "$upVotes"] },
+              downVoted: {
+                  $in: [user._id, "$downVotes"],
+              },
+              totalComments: { $size: "$comments" },
+          }
+        : {
+              joined: false,
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
+              upVoted: false,
+              downVoted: false,
+              totalComments: { $size: "$comments" },
+          };
+    const addFieldsStage = { $addFields: addFieldsCondition };
+
+    const projectUserInfoStage = {
+        $project: {
+            "creatorInfo.email": 0,
+            "creatorInfo.isVerified": 0,
+            "creatorInfo.password": 0,
+            "creatorInfo.refreshToken": 0,
+            "creatorInfo.createdAt": 0,
+            "creatorInfo.updatedAt": 0,
+            upVotes: 0,
+            downVotes: 0,
+            comments: 0,
+        },
+    };
+
+    const pipeline = [
+        matchStage,
+        lookupThreadStage,
+        lookupUserStage,
+        addFieldsStage,
+        projectUserInfoStage,
+    ];
+
+    post = await postModel.aggregate(pipeline);
+
+    res.status(200).json(
+        new ApiResponse(200, post, "Post fetched successfully")
+    );
+});
 const getAllPostOfThread = asyncHandler(async (req, res) => {
     const { user, thread } = req.body;
 
@@ -432,6 +506,7 @@ export {
     deleteUpVote,
     createDownVote,
     deleteDownVote,
+    getPost,
     getAllPostOfThread,
     getAllPost,
 };

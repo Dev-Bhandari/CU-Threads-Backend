@@ -215,7 +215,6 @@ const getOneThread = asyncHandler(async (req, res) => {
 const getThreads = asyncHandler(async (req, res) => {
     const { threadName } = req.body;
 
-    // threadModel.aggregate([{ $match: { _id: threadIds } }, {}]);
     const threads = await threadModel
         .find({ name: { $in: threadName } })
         .populate({ path: "createdBy", select: "-password -refreshToken" });

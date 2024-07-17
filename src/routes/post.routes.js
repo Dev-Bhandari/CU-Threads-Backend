@@ -14,6 +14,7 @@ import {
     deleteDownVote,
     getAllPostOfThread,
     getAllPost,
+    getPost,
 } from "../controllers/post.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 
@@ -35,6 +36,8 @@ router.route("/delete-upvote").patch(verifyJWT, verifyPost, deleteUpVote);
 router.route("/create-downvote").patch(verifyJWT, verifyPost, createDownVote);
 
 router.route("/delete-downvote").patch(verifyJWT, verifyPost, deleteDownVote);
+
+router.route("/get-post/:postId").get(verifyIfUserExist, verifyPost, getPost);
 
 router
     .route("/get-allposts/:threadName")

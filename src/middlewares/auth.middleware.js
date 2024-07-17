@@ -90,7 +90,7 @@ export const verifyMember = asyncHandler(async (req, _, next) => {
 
 export const verifyPost = asyncHandler(async (req, _, next) => {
     try {
-        const { postId } = req.body;
+        const postId = req.body.postId || req.params.postId;
         const post = await postModel.findById(postId);
         if (!post) {
             throw new ApiError(404, "Post not found");

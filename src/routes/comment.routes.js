@@ -15,6 +15,6 @@ router
     .route("/create-comment")
     .post(verifyJWT, verifyPost, verifyComment, createComment);
 
-router.route("/get-allcomments").get(verifyPost, getAllComment);
+router.route("/get-allcomments/:postId").get(verifyPost, getAllComment);
 
 export default router;
