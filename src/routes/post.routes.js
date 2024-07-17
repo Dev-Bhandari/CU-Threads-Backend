@@ -28,13 +28,13 @@ router
         verifyMember,
         createPost
     );
-router.route("/create-upvote").post(verifyJWT, verifyPost, createUpVote);
+router.route("/create-upvote").patch(verifyJWT, verifyPost, createUpVote);
 
-router.route("/delete-upvote").post(verifyJWT, verifyPost, deleteUpVote);
+router.route("/delete-upvote").patch(verifyJWT, verifyPost, deleteUpVote);
 
-router.route("/create-downvote").post(verifyJWT, verifyPost, createDownVote);
+router.route("/create-downvote").patch(verifyJWT, verifyPost, createDownVote);
 
-router.route("/delete-downvote").post(verifyJWT, verifyPost, deleteDownVote);
+router.route("/delete-downvote").patch(verifyJWT, verifyPost, deleteDownVote);
 
 router
     .route("/get-allposts/:threadName")

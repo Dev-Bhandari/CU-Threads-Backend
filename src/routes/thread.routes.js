@@ -57,7 +57,7 @@ router
 
 router
     .route("/delete-member/:threadName")
-    .post(verifyJWT, verifyThread, verifyMember, deleteMember);
+    .delete(verifyJWT, verifyThread, verifyMember, deleteMember);
 
 router.route("/get-onethread/:threadName").get(verifyIfUserExist, getOneThread);
 
