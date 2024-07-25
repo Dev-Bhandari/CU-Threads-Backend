@@ -14,6 +14,7 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 
 import userRouter from "./routes/user.routes.js";
 import threadRouter from "./routes/thread.routes.js";
