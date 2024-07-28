@@ -259,7 +259,7 @@ const getPost = asyncHandler(async (req, res) => {
 const getAllPostOfThread = asyncHandler(async (req, res) => {
     const { user, thread } = req.body;
 
-    const pageSize = 2;
+    const pageSize = 10;
     const sortedField = "createdAt";
 
     let lastSortedFieldId = null;
@@ -377,7 +377,7 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
 const getAllPost = asyncHandler(async (req, res) => {
     const { user } = req.body;
 
-    const pageSize = 3;
+    const pageSize = 10;
     const sortedField = "createdAt";
 
     let lastSortedFieldId = null;

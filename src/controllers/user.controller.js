@@ -1,6 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
-import {userModel,verifyEmailModel} from "../models/index.js";
+import { userModel, verifyEmailModel } from "../models/index.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -299,6 +299,21 @@ const getCurrentUser = asyncHandler(async (req, res) => {
         );
 });
 
+const getOneUser = asyncHandler(async (req, res) => {
+    const { username } = req.params;
+
+    const user = await userModel
+        .findOne({ username })
+        .select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "User fetched successfully"));
+});
+
 const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.file?.path;
     if (!avatarLocalPath) {
@@ -333,5 +348,6 @@ export {
     refreshAccessToken,
     changeCurrentPassword,
     getCurrentUser,
+    getOneUser,
     updateUserAvatar,
 };

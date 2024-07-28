@@ -12,19 +12,20 @@ const name = zod
 
 const description = zod
     .string()
-    .max(500, "Thread description cannot be more than 500 characters");
+    .max(200, "Thread description cannot be more than 200 characters");
 
 const createThreadZodObject = zod.object({
     name,
+    description,
 });
 
 const editDescriptionZodObject = zod.object({
     description,
 });
 
-const validateCreateThread = (name) => {
+const validateCreateThread = (name, description) => {
     try {
-        createThreadZodObject.parse({ name });
+        createThreadZodObject.parse({ name, description });
     } catch (error) {
         return customValidationErrorProvider(error);
     }

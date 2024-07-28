@@ -8,11 +8,11 @@ import {
 } from "../utils/validation/thread.validation.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import fs from "fs";
-import { pipeline } from "stream";
 
 const createThread = asyncHandler(async (req, res) => {
-    const { user, name } = req.body;
-    const error = validateCreateThread(name);
+    const { user, name, description } = req.body;
+    console.log(name);
+    const error = validateCreateThread(name, description);
 
     if (error) {
         throw new ApiError(400, error.toString());
@@ -25,7 +25,8 @@ const createThread = asyncHandler(async (req, res) => {
 
     const thread = await threadModel.create({
         createdBy: user,
-        name: `${name}`,
+        name,
+        description,
         members: [user],
     });
     const threadObject = thread.toObject();
@@ -204,7 +205,7 @@ const getOneThread = asyncHandler(async (req, res) => {
         projectStage,
     ]);
 
-    if (!thread) {
+    if (!thread || thread.length == 0) {
         throw new ApiError(404, "Thread not found");
     }
     return res
@@ -253,9 +254,6 @@ const getAllThreads = asyncHandler(async (req, res) => {
 
     const thread = await threadModel.aggregate([addFieldsStage, projectStage]);
 
-    if (!thread) {
-        throw new ApiError(404, "Thread not found");
-    }
     return res
         .status(200)
         .json(new ApiResponse(200, thread, "Thread fetched successfully"));
