@@ -34,7 +34,7 @@ const generateAccessTokenAndRefreshToken = async function (userId) {
     }
 };
 
-const generateEmail = async function (user) {
+const generateEmail = async function (user, emailType) {
     try {
         await verifyEmailModel.deleteOne({ userId: user._id });
         await verifyEmailModel.create({
@@ -47,7 +47,7 @@ const generateEmail = async function (user) {
         const emailToken = verifyEmailObject.generateEmailToken();
 
         console.log(`Email Token : ${emailToken}`);
-        await mailer(user, emailToken);
+        await mailer(user, emailToken, emailType);
     } catch (error) {
         throw new ApiError(
             500,
@@ -93,13 +93,13 @@ const registerUser = asyncHandler(async (req, res) => {
             "Something went wrong while registering the user."
         );
     }
-    await generateEmail(currentUser);
+    await generateEmail(currentUser, "verifyEmail");
     res.status(201).json(
         new ApiResponse(201, currentUser, "User verification pending.")
     );
 });
 
-const generateNewEmailLink = asyncHandler(async (req, res) => {
+const generateVerifyEmail = asyncHandler(async (req, res) => {
     const userId = req.body?.userId;
     const currentUser = await userModel
         .findById(userId)
@@ -110,7 +110,7 @@ const generateNewEmailLink = asyncHandler(async (req, res) => {
     if (currentUser.isVerified) {
         throw new ApiError(400, "User already verified.");
     }
-    await generateEmail(currentUser);
+    await generateEmail(currentUser, "verifyEmail");
     res.status(200).json(
         new ApiResponse(200, {}, "Verification link send sucessfully.")
     );
@@ -169,7 +169,7 @@ const loginUser = asyncHandler(async (req, res) => {
         .select("-password -refreshToken");
 
     if (!currentUser.isVerified) {
-        await generateEmail(currentUser);
+        await generateEmail(currentUser, "verifyEmail");
         return res
             .status(202)
             .json(
@@ -185,6 +185,51 @@ const loginUser = asyncHandler(async (req, res) => {
         .cookie("accessToken", accessToken, COOKIE_OPTIONS)
         .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
         .json(new ApiResponse(201, currentUser, "User logged in successfully"));
+});
+
+const generateForgotPasswordEmail = asyncHandler(async (req, res) => {
+    const email = req.body?.email;
+    console.log(email);
+    const currentUser = await userModel
+        .findOne({ email })
+        .select("-password -refreshToken");
+    if (!currentUser) {
+        throw new ApiError(404, "User does not exist.");
+    }
+    await generateEmail(currentUser, "forgotPassword");
+    res.status(200).json(
+        new ApiResponse(200, {}, "Password reset request send sucessfully.")
+    );
+});
+
+const verifyForgotPasswordEmail = asyncHandler(async (req, res) => {
+    const emailToken = req.query.emailToken;
+    const { password } = req.body;
+
+    if (!emailToken) {
+        throw new ApiError(401, "Unauthorised Request.");
+    }
+    const decodedEmailToken = jwt.verify(emailToken, EMAIL_TOKEN_SECRET);
+    const verifyEmailObject = await verifyEmailModel.findById(
+        decodedEmailToken?._id
+    );
+    if (!verifyEmailObject) {
+        throw new ApiError(401, "Invalid or expired email token.");
+    }
+
+    if (!password) {
+        throw new ApiError(401, "All fields are required");
+    }
+    const user = await userModel.findById(verifyEmailObject.userId);
+
+    user.password = password;
+    await user.save({ validateBeforeSave: false });
+
+    await verifyEmailModel.deleteOne({ userId: user._id });
+
+    res.status(200).json(
+        new ApiResponse(200, {}, "Password changed successfully.")
+    );
 });
 
 const logoutUser = async (req, res) => {
@@ -341,9 +386,11 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
 export {
     registerUser,
-    generateNewEmailLink,
+    generateVerifyEmail,
     verifyEmail,
     loginUser,
+    generateForgotPasswordEmail,
+    verifyForgotPasswordEmail,
     logoutUser,
     refreshAccessToken,
     changeCurrentPassword,

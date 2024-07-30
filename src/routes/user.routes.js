@@ -1,15 +1,17 @@
 import { Router } from "express";
 import {
     registerUser,
-    generateNewEmailLink,
     verifyEmail,
     loginUser,
+    generateForgotPasswordEmail,
     logoutUser,
     refreshAccessToken,
     changeCurrentPassword,
     getCurrentUser,
     updateUserAvatar,
     getOneUser,
+    generateVerifyEmail,
+    verifyForgotPasswordEmail,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -18,11 +20,15 @@ const router = Router();
 
 router.route("/register").post(registerUser);
 
-router.route("/get-new-link").post(generateNewEmailLink);
+router.route("/get-new-link").post(generateVerifyEmail);
 
 router.route("/login").post(loginUser);
 
 router.route("/verify-email").post(verifyEmail);
+
+router.route("/forgot-password").post(generateForgotPasswordEmail);
+
+router.route("/verify-forgot-password").post(verifyForgotPasswordEmail);
 
 router.route("/logout").post(verifyJWT, logoutUser);
 
