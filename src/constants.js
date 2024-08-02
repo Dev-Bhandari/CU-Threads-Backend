@@ -8,8 +8,11 @@ export const COOKIE_OPTIONS = {
     path: "/",
 };
 
-export const DEFAULT_AVATAR =
+export const DEFAULT_USER_AVATAR =
     "https://res.cloudinary.com/demetdlv9/image/upload/v1712492059/default-avatar.png";
 
-export const DEFAULT_BANNER =
+export const DEFAULT_THREAD_AVATAR =
+    "https://res.cloudinary.com/demetdlv9/image/upload/v1712492059/default-avatar.png";
+
+export const DEFAULT_THREAD_BANNER =
     "https://res.cloudinary.com/demetdlv9/image/upload/v1712492058/default-banner.png";

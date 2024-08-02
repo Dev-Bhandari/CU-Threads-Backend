@@ -8,7 +8,7 @@ import {
     REFRESH_TOKEN_EXPIRY,
     SALT_ROUNDS,
 } from "../config/server.config.js";
-import { DEFAULT_AVATAR } from "../constants.js";
+import { DEFAULT_USER_AVATAR } from "../constants.js";
 const userSchema = new mongoose.Schema(
     {
         username: {
@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
         },
         avatar: {
             type: String,
-            default: DEFAULT_AVATAR,
+            default: DEFAULT_USER_AVATAR,
         },
         refreshToken: {
             type: String,
