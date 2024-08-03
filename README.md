@@ -70,11 +70,13 @@ CU Threads Backend is the server-side application for CU Threads, a social media
 ### Posts
 
 - `POST /api/posts/create-post/:threadName` - Create a new post for a thread
+- `DELETE /api/posts/delete-post:postId` - Delete a post
 - `PATCH /api/posts/create-upvote` - Creates an upvote on  a post
 - `PATCH /api/posts/delete-upvote` - Removes an upvote on  a post
 - `PATCH /api/posts/create-downvote` - Creates a downvote on  a post
 - `PATCH /api/posts/delete-downvote` - Removes a downvote on  a post
-- `GET /api/posts/get-allposts/:threadName` - Gets all posts of a thread
+- `GET /api/posts/get-posts-thread/:threadName` - Gets all posts of a thread
+- `GET /api/posts/get-posts-user/:username` - Gets all posts of a user
 - `GET /api/posts/get-allposts` - Gets all posts for home page
 
 ### Comments
