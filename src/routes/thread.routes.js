@@ -13,7 +13,7 @@ import {
 } from "../controllers/thread.controller.js";
 import {
     verifyJWT,
-    verifyCreater,
+    verifyThreadCreator,
     verifyThread,
     verifyMember,
     verifyIfUserExist,
@@ -25,7 +25,7 @@ router.route("/create-thread").post(verifyJWT, createThread);
 
 router
     .route("/change-description/:threadName")
-    .post(verifyJWT, verifyThread, verifyCreater, updateDescription);
+    .post(verifyJWT, verifyThread, verifyThreadCreator, updateDescription);
 
 router
     .route("/change-avatar/:threadName")
@@ -33,7 +33,7 @@ router
         upload.single("avatar"),
         verifyJWT,
         verifyThread,
-        verifyCreater,
+        verifyThreadCreator,
         updateThreadAvatar
     );
 
@@ -43,7 +43,7 @@ router
         upload.single("banner"),
         verifyJWT,
         verifyThread,
-        verifyCreater,
+        verifyThreadCreator,
         updateThreadBanner
     );
 

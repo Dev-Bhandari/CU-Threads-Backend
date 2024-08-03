@@ -45,7 +45,7 @@ const updateDescription = asyncHandler(async (req, res) => {
         throw new ApiError(400, error.toString());
     }
     thread.description = description;
-    thread.save({ validateBeforeSafe: false });
+    thread.save();
 
     return res
         .status(200)

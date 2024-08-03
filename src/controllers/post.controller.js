@@ -70,6 +70,15 @@ const createPost = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, postObject, "Post created successfully"));
 });
 
+const deletePost = asyncHandler(async (req, res) => {
+    const { post } = req.body;
+    post.isDeleted = true;
+    post.save();
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Post deleted successfully"));
+});
+
 const createUpVote = asyncHandler(async (req, res) => {
     const { user, post } = req.body;
     const upVoted = post.upVotes.includes(user._id);
@@ -181,11 +190,12 @@ const deleteDownVote = asyncHandler(async (req, res) => {
         )
     );
 });
+
 const getPost = asyncHandler(async (req, res) => {
     const { user } = req.body;
     let { post } = req.body;
 
-    const matchStage = { $match: { _id: post._id } };
+    const matchStage = { $match: { _id: post._id, isDeleted: false } };
 
     const lookupThreadStage = {
         $lookup: {
@@ -252,10 +262,15 @@ const getPost = asyncHandler(async (req, res) => {
 
     post = await postModel.aggregate(pipeline);
 
+    if (!post || post.length == 0) {
+        throw new ApiError(404, "Thread not found");
+    }
+    
     res.status(200).json(
         new ApiResponse(200, post, "Post fetched successfully")
     );
 });
+
 const getAllPostOfThread = asyncHandler(async (req, res) => {
     const { user, thread } = req.body;
 
@@ -277,8 +292,9 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
         ? {
               createdFor: thread._id,
               [sortedField]: { $lt: lastSortedFieldValue },
+              isDeleted: false,
           }
-        : { createdFor: thread._id };
+        : { createdFor: thread._id, isDeleted: false };
     const matchStage = { $match: matchConditions };
 
     const lookupThreadStage = {
@@ -392,8 +408,8 @@ const getAllPost = asyncHandler(async (req, res) => {
         lastSortedFieldValue = post.createdAt;
     }
     const matchConditions = lastSortedFieldValue
-        ? { [sortedField]: { $lt: lastSortedFieldValue } }
-        : {};
+        ? { [sortedField]: { $lt: lastSortedFieldValue }, isDeleted: false }
+        : { isDeleted: false };
     const matchStage = { $match: matchConditions };
 
     const lookupThreadStage = {
@@ -502,6 +518,7 @@ const getAllPost = asyncHandler(async (req, res) => {
 
 export {
     createPost,
+    deletePost,
     createUpVote,
     deleteUpVote,
     createDownVote,

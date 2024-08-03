@@ -58,11 +58,24 @@ export const verifyThread = asyncHandler(async (req, _, next) => {
     }
 });
 
-export const verifyCreater = asyncHandler(async (req, _, next) => {
+export const verifyThreadCreator = asyncHandler(async (req, _, next) => {
     try {
         const { user, thread } = req.body;
 
         if (thread.createdBy.toString() != user._id.toString()) {
+            throw new ApiError(400, "Unauthorised Request");
+        }
+        next();
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Unauthorised Request");
+    }
+});
+
+export const verifyPostCreator = asyncHandler(async (req, _, next) => {
+    try {
+        const { user, post } = req.body;
+
+        if (post.createdBy.toString() != user._id.toString()) {
             throw new ApiError(400, "Unauthorised Request");
         }
         next();
@@ -92,7 +105,7 @@ export const verifyPost = asyncHandler(async (req, _, next) => {
     try {
         const postId = req.body.postId || req.params.postId;
         const post = await postModel.findById(postId);
-        if (!post) {
+        if (!post || post.isDeleted) {
             throw new ApiError(404, "Post not found");
         }
 

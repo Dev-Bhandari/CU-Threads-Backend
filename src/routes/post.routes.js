@@ -5,9 +5,11 @@ import {
     verifyMember,
     verifyPost,
     verifyThread,
+    verifyPostCreator,
 } from "../middlewares/auth.middleware.js";
 import {
     createPost,
+    deletePost,
     createUpVote,
     deleteUpVote,
     createDownVote,
@@ -29,6 +31,11 @@ router
         verifyMember,
         createPost
     );
+
+router
+    .route("/delete-post/:postId")
+    .delete(verifyJWT, verifyPost, verifyPostCreator, deletePost);
+
 router.route("/create-upvote").patch(verifyJWT, verifyPost, createUpVote);
 
 router.route("/delete-upvote").patch(verifyJWT, verifyPost, deleteUpVote);
