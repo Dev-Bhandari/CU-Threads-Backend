@@ -27,7 +27,7 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
     }
 });
 
-export const verifyIfUserExist = asyncHandler(async (req, _, next) => {
+export const verifyCurrUserExist = asyncHandler(async (req, _, next) => {
     try {
         const token = req.cookies?.accessToken;
         if (token) {
@@ -35,6 +35,24 @@ export const verifyIfUserExist = asyncHandler(async (req, _, next) => {
             const user = await userModel.findById(decodedToken?._id);
             req.body.user = user;
         }
+        next();
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Something went wrong");
+    }
+});
+
+export const verifyUserExist = asyncHandler(async (req, _, next) => {
+    try {
+        const { username } = req.params;
+        if (!username) {
+            throw new ApiError(400, "Username name cannot be empty");
+        }
+        const searchedUser = await userModel.findOne({ username });
+        if (!searchedUser) {
+            throw new ApiError(404, "User not found");
+        }
+        console.log("Working");
+        req.body.searchedUser = searchedUser;
         next();
     } catch (error) {
         throw new ApiError(401, error?.message || "Something went wrong");

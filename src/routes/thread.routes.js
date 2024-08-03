@@ -16,7 +16,7 @@ import {
     verifyThreadCreator,
     verifyThread,
     verifyMember,
-    verifyIfUserExist,
+    verifyCurrUserExist,
 } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";
 const router = Router();
@@ -59,10 +59,10 @@ router
     .route("/delete-member/:threadName")
     .delete(verifyJWT, verifyThread, verifyMember, deleteMember);
 
-router.route("/get-onethread/:threadName").get(verifyIfUserExist, getOneThread);
+router.route("/get-onethread/:threadName").get(verifyCurrUserExist, getOneThread);
 
-router.route("/get-threads").post(verifyIfUserExist, getThreads);
+router.route("/get-threads").post(verifyCurrUserExist, getThreads);
 
-router.route("/get-allthreads").get(verifyIfUserExist, getAllThreads);
+router.route("/get-allthreads").get(verifyCurrUserExist, getAllThreads);
 
 export default router;

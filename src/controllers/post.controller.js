@@ -265,7 +265,7 @@ const getPost = asyncHandler(async (req, res) => {
     if (!post || post.length == 0) {
         throw new ApiError(404, "Thread not found");
     }
-    
+
     res.status(200).json(
         new ApiResponse(200, post, "Post fetched successfully")
     );
@@ -362,6 +362,137 @@ const getAllPostOfThread = asyncHandler(async (req, res) => {
         lookupThreadStage,
         lookupUserStage,
         addFieldsStage,
+        projectUserInfoStage,
+        sortStage,
+        limitStage,
+    ];
+
+    const posts = await postModel.aggregate(pipeline);
+
+    let hasNextPage = false;
+
+    if (posts.length > pageSize) {
+        hasNextPage = true;
+        posts.pop();
+    }
+
+    if (posts.length > 0) {
+        const lastPost = posts[posts.length - 1];
+        lastSortedFieldId = lastPost._id;
+    }
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            { hasNextPage, posts, lastSortedFieldId },
+            "Posts fetched successfully"
+        )
+    );
+});
+
+const getAllPostOfUser = asyncHandler(async (req, res) => {
+    const { searchedUser, user } = req.body;
+
+    const pageSize = 10;
+    const sortedField = "createdAt";
+
+    let lastSortedFieldId = null;
+    let lastSortedFieldValue = null;
+
+    if (req.query.lastId) {
+        lastSortedFieldId = req.query.lastId;
+        const post = await postModel.findById(lastSortedFieldId);
+        if (!post) {
+            throw new ApiError(400, "Not a valid Post Id");
+        }
+        lastSortedFieldValue = post.createdAt;
+    }
+    const matchConditions = lastSortedFieldValue
+        ? {
+              createdBy: searchedUser._id,
+              [sortedField]: { $lt: lastSortedFieldValue },
+              isDeleted: false,
+          }
+        : { createdBy: searchedUser._id, isDeleted: false };
+    const matchStage = { $match: matchConditions };
+
+    const lookupThreadStage = {
+        $lookup: {
+            from: "threads",
+            localField: "createdFor",
+            foreignField: "_id",
+            as: "threadInfo",
+        },
+    };
+
+    const lookupUserStage = {
+        $lookup: {
+            from: "users",
+            localField: "createdBy",
+            foreignField: "_id",
+            as: "creatorInfo",
+        },
+    };
+
+    const addFieldsCondition = user
+        ? {
+              joined: { $in: [user._id, "$threadInfo.members"] },
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
+              upVoted: { $in: [user._id, "$upVotes"] },
+              downVoted: {
+                  $in: [user._id, "$downVotes"],
+              },
+              totalComments: { $size: "$comments" },
+          }
+        : {
+              joined: false,
+              totalVotes: {
+                  $subtract: [{ $size: "$upVotes" }, { $size: "$downVotes" }],
+              },
+              upVoted: false,
+              downVoted: false,
+              totalComments: { $size: "$comments" },
+          };
+    const addFieldsStage = { $addFields: addFieldsCondition };
+    
+    const projectThreadInfoStage = {
+        $project: {
+            "threadInfo.banner": 0,
+            "threadInfo.tags": 0,
+            "threadInfo.banner": 0,
+            "threadInfo.createdAt": 0,
+            "threadInfo.updatedAt": 0,
+            "threadInfo.description": 0,
+            "threadInfo.members": 0,
+        },
+    };
+    
+    const projectUserInfoStage = {
+        $project: {
+            "creatorInfo.email": 0,
+            "creatorInfo.isVerified": 0,
+            "creatorInfo.password": 0,
+            "creatorInfo.refreshToken": 0,
+            "creatorInfo.createdAt": 0,
+            "creatorInfo.updatedAt": 0,
+            upVotes: 0,
+            downVotes: 0,
+            comments: 0,
+        },
+    };
+
+    const sortStage = { $sort: { [sortedField]: -1 } };
+
+    const limitStage = { $limit: pageSize + 1 };
+
+    const pipeline = [
+        matchStage,
+        lookupThreadStage,
+        lookupUserStage,
+        addFieldsStage,
+        projectThreadInfoStage,
         projectUserInfoStage,
         sortStage,
         limitStage,
@@ -525,5 +656,6 @@ export {
     deleteDownVote,
     getPost,
     getAllPostOfThread,
+    getAllPostOfUser,
     getAllPost,
 };

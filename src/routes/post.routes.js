@@ -1,11 +1,12 @@
 import { Router } from "express";
 import {
     verifyJWT,
-    verifyIfUserExist,
+    verifyCurrUserExist,
     verifyMember,
     verifyPost,
     verifyThread,
     verifyPostCreator,
+    verifyUserExist,
 } from "../middlewares/auth.middleware.js";
 import {
     createPost,
@@ -14,9 +15,10 @@ import {
     deleteUpVote,
     createDownVote,
     deleteDownVote,
-    getAllPostOfThread,
-    getAllPost,
     getPost,
+    getAllPostOfThread,
+    getAllPostOfUser,
+    getAllPost,
 } from "../controllers/post.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 
@@ -44,12 +46,16 @@ router.route("/create-downvote").patch(verifyJWT, verifyPost, createDownVote);
 
 router.route("/delete-downvote").patch(verifyJWT, verifyPost, deleteDownVote);
 
-router.route("/get-post/:postId").get(verifyIfUserExist, verifyPost, getPost);
+router.route("/get-post/:postId").get(verifyCurrUserExist, verifyPost, getPost);
 
 router
-    .route("/get-allposts/:threadName")
-    .get(verifyIfUserExist, verifyThread, getAllPostOfThread);
+    .route("/get-posts-thread/:threadName")
+    .get(verifyCurrUserExist, verifyThread, getAllPostOfThread);
 
-router.route("/get-allposts").get(verifyIfUserExist, getAllPost);
+router
+    .route("/get-posts-user/:username")
+    .get(verifyUserExist, verifyCurrUserExist, getAllPostOfUser);
+
+router.route("/get-allposts").get(verifyCurrUserExist, getAllPost);
 
 export default router;
