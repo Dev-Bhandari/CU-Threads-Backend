@@ -51,7 +51,6 @@ export const verifyUserExist = asyncHandler(async (req, _, next) => {
         if (!searchedUser) {
             throw new ApiError(404, "User not found");
         }
-        console.log("Working");
         req.body.searchedUser = searchedUser;
         next();
     } catch (error) {

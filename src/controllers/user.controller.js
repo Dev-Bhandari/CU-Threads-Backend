@@ -304,6 +304,10 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         throw new ApiError(401, "All fields are required");
     }
 
+    if (oldPassword.length < 6 || newPassword.length < 6 || confirmPassword.length < 6) {
+        throw new ApiError(401, "Password should be of minimum 6 characters");
+    }
+
     if (newPassword !== confirmPassword) {
         throw new ApiError(
             401,
