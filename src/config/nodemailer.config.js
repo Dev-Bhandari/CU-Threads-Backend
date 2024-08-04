@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const mailer = async (user, emailToken, emailType) => {
+const mailer = (user, emailToken, emailType) => {
     const verifyEmailUrl = `${FRONTEND_ENDPOINT}/verify-email?emailToken=${emailToken}`;
 
     const verifyEmailBody = {
@@ -113,10 +113,10 @@ const mailer = async (user, emailToken, emailType) => {
         `,
     };
 
-    if (emailType == "verifyEmail") await transporter.sendMail(verifyEmailBody);
+    if (emailType == "verifyEmail") transporter.sendMail(verifyEmailBody);
     else if (emailType == "forgotPassword") {
         console.log("Email send");
-        await transporter.sendMail(forgotPasswordBody);
+        transporter.sendMail(forgotPasswordBody);
         console.log("Done");
     }
 };
