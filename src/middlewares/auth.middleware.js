@@ -135,14 +135,31 @@ export const verifyPost = asyncHandler(async (req, _, next) => {
     }
 });
 
-export const verifyComment = asyncHandler(async (req, res, next) => {
+export const verifyParentComment = asyncHandler(async (req, res, next) => {
     try {
         const { parentCommentId, post } = req.body;
         if (parentCommentId) {
             const comment = await commentModel.findById(parentCommentId);
+            if (!comment) throw new ApiError(404, "Parent comment not found");
+            if (comment.content === "[ deleted ]")
+                throw new ApiError(400, "Cannot comment on deleted comment");
             if (comment.createdFor.toString() === post._id.toString())
                 req.body.parentComment = comment;
         }
+        next();
+    } catch (error) {
+        throw new ApiError(400, error?.message || "Something went wrong");
+    }
+});
+
+export const verifyComment = asyncHandler(async (req, res, next) => {
+    try {
+        const { commentId } = req.params;
+
+        const comment = await commentModel.findById(commentId);
+
+        if (!comment) throw new ApiError(404, "Comment not found");
+        req.body.comment = comment;
         next();
     } catch (error) {
         throw new ApiError(400, error?.message || "Something went wrong");

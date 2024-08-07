@@ -34,6 +34,26 @@ const createComment = asyncHandler(async (req, res) => {
         .json(new ApiResponse(201, comment, "Comment created successfully"));
 });
 
+const deleteComment = asyncHandler(async (req, res) => {
+    const { comment } = req.body;
+
+    const child = await commentModel.findOne({ parentComment: comment._id });
+    console.log(child);
+
+    if (child) {
+        if (comment.content === "[ deleted ]")
+            throw new ApiError(400, "Comment is already deleted");
+
+        comment.content = "[ deleted ]";
+        comment.save();
+    } else {
+        await commentModel.deleteOne({ _id: comment._id });
+    }
+    res.status(200).json(
+        new ApiResponse(200, {}, "Comment deleted successfully")
+    );
+});
+
 const getAllComment = asyncHandler(async (req, res) => {
     const { post } = req.body;
     const matchStage = {
@@ -98,4 +118,4 @@ const getAllComment = asyncHandler(async (req, res) => {
     );
 });
 
-export { createComment, getAllComment };
+export { createComment, deleteComment, getAllComment };
