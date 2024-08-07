@@ -47,7 +47,14 @@ const deleteComment = asyncHandler(async (req, res) => {
         comment.content = "[ deleted ]";
         comment.save();
     } else {
-        await commentModel.deleteOne({ _id: comment._id });
+        const createdFor = comment.createdFor;
+        const commentId = comment._id;
+        const deleteRes = await commentModel.deleteOne({ _id: comment._id });
+        if (deleteRes.acknowledged) {
+            await postModel.findByIdAndUpdate(createdFor, {
+                $pull: { comments: commentId },
+            });
+        }
     }
     res.status(200).json(
         new ApiResponse(200, {}, "Comment deleted successfully")
