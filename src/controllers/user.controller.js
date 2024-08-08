@@ -47,7 +47,7 @@ const generateEmail = async function (user, emailType) {
         const emailToken = verifyEmailObject.generateEmailToken();
 
         console.log(`Email Token : ${emailToken}`);
-        await mailer(user, emailToken, emailType);
+        mailer(user, emailToken, emailType);
     } catch (error) {
         throw new ApiError(
             500,
@@ -234,11 +234,13 @@ const verifyForgotPasswordEmail = asyncHandler(async (req, res) => {
 
 const logoutUser = async (req, res) => {
     const { user } = req.body;
-    await userModel.findByIdAndUpdate(user._id, {
-        $unset: {
-            refreshToken: 1,
-        },
-    });
+    if (user) {
+        await userModel.findByIdAndUpdate(user._id, {
+            $unset: {
+                refreshToken: 1,
+            },
+        });
+    }
 
     return res
         .status(200)
@@ -281,13 +283,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             .status(200)
             .cookie("accessToken", accessToken, COOKIE_OPTIONS)
             .cookie("refreshToken", refreshToken, COOKIE_OPTIONS)
-            .json(
-                new ApiResponse(
-                    200,
-                    { accessToken, refreshToken },
-                    "Generated new access token"
-                )
-            );
+            .json(new ApiResponse(200, {}, "Generated new access token"));
     } catch (error) {
         throw new ApiError(
             401,
@@ -304,7 +300,11 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
         throw new ApiError(401, "All fields are required");
     }
 
-    if (oldPassword.length < 6 || newPassword.length < 6 || confirmPassword.length < 6) {
+    if (
+        oldPassword.length < 6 ||
+        newPassword.length < 6 ||
+        confirmPassword.length < 6
+    ) {
         throw new ApiError(401, "Password should be of minimum 6 characters");
     }
 

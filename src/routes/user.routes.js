@@ -14,7 +14,7 @@ import {
     verifyForgotPasswordEmail,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyRefreshToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -30,7 +30,7 @@ router.route("/forgot-password").post(generateForgotPasswordEmail);
 
 router.route("/verify-forgot-password").post(verifyForgotPasswordEmail);
 
-router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/logout").post(verifyRefreshToken, logoutUser);
 
 router.route("/refresh-token").post(refreshAccessToken);
 

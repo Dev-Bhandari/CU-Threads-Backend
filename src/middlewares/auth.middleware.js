@@ -1,7 +1,10 @@
 import ApiError from "../utils/ApiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import { ACCESS_TOKEN_SECRET } from "../config/server.config.js";
+import {
+    ACCESS_TOKEN_SECRET,
+    REFRESH_TOKEN_SECRET,
+} from "../config/server.config.js";
 import {
     userModel,
     threadModel,
@@ -24,6 +27,22 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
         next();
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid Access Token");
+    }
+});
+
+export const verifyRefreshToken = asyncHandler(async (req, _, next) => {
+    try {
+        const { refreshToken } = req.cookies;
+        const decodedRefreshToken = jwt.verify(
+            refreshToken,
+            REFRESH_TOKEN_SECRET
+        );
+        const user = await userModel.findById(decodedRefreshToken?._id);
+        req.body.user = user;
+        next();
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) next();
+        else throw new ApiError(401, "Invalid Refresh Token");
     }
 });
 
