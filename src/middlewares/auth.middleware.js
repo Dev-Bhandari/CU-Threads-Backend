@@ -31,11 +31,18 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
 });
 
 export const verifyRefreshToken = asyncHandler(async (req, _, next) => {
-    const { refreshToken } = req.cookies;
-    const decodedRefreshToken = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
-    const user = await userModel.findById(decodedRefreshToken?._id);
-    req.body.user = user;
-    next();
+    try {
+        const { refreshToken } = req.cookies;
+        const decodedRefreshToken = jwt.verify(
+            refreshToken,
+            REFRESH_TOKEN_SECRET
+        );
+        const user = await userModel.findById(decodedRefreshToken?._id);
+        req.body.user = user;
+        next();
+    } catch (error) {
+        next();
+    }
 });
 
 export const verifyCurrUserExist = asyncHandler(async (req, _, next) => {
