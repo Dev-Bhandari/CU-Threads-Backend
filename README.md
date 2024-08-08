@@ -82,6 +82,7 @@ CU Threads Backend is the server-side application for CU Threads, a social media
 ### Comments
 
 - `POST /api/comments/create-comment` - Creates new comment for a post
+- `DELETE /api/comments/delete-comment:commentId` - Delete a comment
 - `GET /api/comments/get-allcomments` - Gets all comments of a post
 
 ## Folder Structure
