@@ -9,17 +9,32 @@ import {
     verifyJWT,
     verifyPost,
     verifyComment,
+    verifyIsVerified,
+    verifyCommentCreator,
 } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
 router
     .route("/create-comment")
-    .post(verifyJWT, verifyPost, verifyParentComment, createComment);
+    .post(
+        verifyJWT,
+        verifyIsVerified,
+        verifyPost,
+        verifyParentComment,
+        createComment
+    );
 
-router.route("/delete-comment/:commentId").delete(verifyComment,deleteComment)
+router
+    .route("/delete-comment/:commentId")
+    .delete(
+        verifyJWT,
+        verifyIsVerified,
+        verifyComment,
+        verifyCommentCreator,
+        deleteComment
+    );
 
 router.route("/get-allcomments/:postId").get(verifyPost, getAllComment);
-
 
 export default router;

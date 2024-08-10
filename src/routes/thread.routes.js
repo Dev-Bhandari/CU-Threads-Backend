@@ -17,21 +17,29 @@ import {
     verifyThread,
     verifyMember,
     verifyCurrUserExist,
+    verifyIsVerified,
 } from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";
 const router = Router();
 
-router.route("/create-thread").post(verifyJWT, createThread);
+router.route("/create-thread").post(verifyJWT, verifyIsVerified, createThread);
 
 router
     .route("/change-description/:threadName")
-    .post(verifyJWT, verifyThread, verifyThreadCreator, updateDescription);
+    .post(
+        verifyJWT,
+        verifyIsVerified,
+        verifyThread,
+        verifyThreadCreator,
+        updateDescription
+    );
 
 router
     .route("/change-avatar/:threadName")
     .patch(
         upload.single("avatar"),
         verifyJWT,
+        verifyIsVerified,
         verifyThread,
         verifyThreadCreator,
         updateThreadAvatar
@@ -42,6 +50,7 @@ router
     .patch(
         upload.single("banner"),
         verifyJWT,
+        verifyIsVerified,
         verifyThread,
         verifyThreadCreator,
         updateThreadBanner
@@ -49,17 +58,25 @@ router
 
 router
     .route("/verify-member/:threadName")
-    .post(verifyJWT, verifyThread, verifyMember, checkMember);
+    .post(verifyJWT, verifyIsVerified, verifyThread, verifyMember, checkMember);
 
 router
     .route("/create-member/:threadName")
-    .post(verifyJWT, verifyThread, createMember);
+    .post(verifyJWT, verifyIsVerified, verifyThread, createMember);
 
 router
     .route("/delete-member/:threadName")
-    .delete(verifyJWT, verifyThread, verifyMember, deleteMember);
+    .delete(
+        verifyJWT,
+        verifyIsVerified,
+        verifyThread,
+        verifyMember,
+        deleteMember
+    );
 
-router.route("/get-onethread/:threadName").get(verifyCurrUserExist, getOneThread);
+router
+    .route("/get-onethread/:threadName")
+    .get(verifyCurrUserExist, getOneThread);
 
 router.route("/get-threads").post(verifyCurrUserExist, getThreads);
 

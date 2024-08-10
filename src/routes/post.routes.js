@@ -7,6 +7,7 @@ import {
     verifyThread,
     verifyPostCreator,
     verifyUserExist,
+    verifyIsVerified,
 } from "../middlewares/auth.middleware.js";
 import {
     createPost,
@@ -29,6 +30,7 @@ router
     .post(
         upload.array("media"),
         verifyJWT,
+        verifyIsVerified,
         verifyThread,
         verifyMember,
         createPost
@@ -36,15 +38,29 @@ router
 
 router
     .route("/delete-post/:postId")
-    .delete(verifyJWT, verifyPost, verifyPostCreator, deletePost);
+    .delete(
+        verifyJWT,
+        verifyIsVerified,
+        verifyPost,
+        verifyPostCreator,
+        deletePost
+    );
 
-router.route("/create-upvote").patch(verifyJWT, verifyPost, createUpVote);
+router
+    .route("/create-upvote")
+    .patch(verifyJWT, verifyIsVerified, verifyPost, createUpVote);
 
-router.route("/delete-upvote").patch(verifyJWT, verifyPost, deleteUpVote);
+router
+    .route("/delete-upvote")
+    .patch(verifyJWT, verifyIsVerified, verifyPost, deleteUpVote);
 
-router.route("/create-downvote").patch(verifyJWT, verifyPost, createDownVote);
+router
+    .route("/create-downvote")
+    .patch(verifyJWT, verifyIsVerified, verifyPost, createDownVote);
 
-router.route("/delete-downvote").patch(verifyJWT, verifyPost, deleteDownVote);
+router
+    .route("/delete-downvote")
+    .patch(verifyJWT, verifyIsVerified, verifyPost, deleteDownVote);
 
 router.route("/get-post/:postId").get(verifyCurrUserExist, verifyPost, getPost);
 

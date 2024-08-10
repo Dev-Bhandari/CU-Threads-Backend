@@ -30,6 +30,14 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
     }
 });
 
+export const verifyIsVerified = asyncHandler((req, _, next) => {
+    const { user } = req.body;
+    if (!user.isVerified) {
+        throw new ApiError(401, "Unauthorised Request");
+    }
+    next();
+});
+
 export const verifyRefreshToken = asyncHandler(async (req, _, next) => {
     try {
         const { refreshToken } = req.cookies;
@@ -119,6 +127,19 @@ export const verifyPostCreator = asyncHandler(async (req, _, next) => {
     }
 });
 
+export const verifyCommentCreator = asyncHandler(async (req, _, next) => {
+    try {
+        const { user, comment } = req.body;
+
+        if (comment.createdBy.toString() != user._id.toString()) {
+            throw new ApiError(400, "Unauthorised Request");
+        }
+        next();
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Unauthorised Request");
+    }
+});
+
 export const verifyMember = asyncHandler(async (req, _, next) => {
     try {
         const { user, thread } = req.body;
@@ -153,7 +174,7 @@ export const verifyPost = asyncHandler(async (req, _, next) => {
     }
 });
 
-export const verifyParentComment = asyncHandler(async (req, res, next) => {
+export const verifyParentComment = asyncHandler(async (req, _, next) => {
     try {
         const { parentCommentId, post } = req.body;
         if (parentCommentId) {
@@ -170,7 +191,7 @@ export const verifyParentComment = asyncHandler(async (req, res, next) => {
     }
 });
 
-export const verifyComment = asyncHandler(async (req, res, next) => {
+export const verifyComment = asyncHandler(async (req, _, next) => {
     try {
         const { commentId } = req.params;
 
