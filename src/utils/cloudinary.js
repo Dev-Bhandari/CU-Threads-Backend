@@ -20,6 +20,9 @@ const uploadOnCloudinary = async (localFilePath) => {
         });
         console.log("File uploaded on Cloudinary", response.secure_url);
         fs.unlinkSync(localFilePath);
+        const fileType = response.resource_type === "video" ? "video" : "image";
+        const cleanUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/${fileType}/upload/${response.public_id}`;
+        response.secure_url = cleanUrl;
         return response;
     } catch (error) {
         console.log("Removing file");
